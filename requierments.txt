@@ -1,1 +1,2 @@
-twilio==X.Y.Z
+Flask==2.3.3
+twilio==7.17.0
