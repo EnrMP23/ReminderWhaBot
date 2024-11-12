@@ -1,14 +1,44 @@
 from twilio.rest import Client
+import asyncio
+from datetime import datetime, timedelta
 
 account_sid = 'AC1c8e94ef2abe842c5bb764d86d24a462'
 auth_token = 'c51bc46a81bdc47573e95be62a277108'
 client = Client(account_sid, auth_token)
 
-message = client.messages.create(
-  from_='whatsapp:+14155238886',
-  content_sid='HXb5b62575e6e4ff6129ad7c8efe1f983e',
-  content_variables='{"1":"12/1","2":"3pm"}',
-  to='whatsapp:+5216625228513'
-)
+recordatorios = {}
 
-print(message.sid)
+async def agregar_recordatorio(numero: str, minutos: int, mensaje: str):
+    hora_envio = datetime.now() + timedelta(minutes=minutos)
+    recordatorios[(numero, mensaje)] = hora_envio
+    print(f"Recordatorio programado para {numero} en {minutos} minutos.")
+
+# Función para enviar un mensaje de WhatsApp a través de Twilio
+async def enviar_mensaje(numero: str, mensaje: str):
+    client.messages.create(
+        from_='whatsapp:+14155238886',  # Número de Twilio para WhatsApp
+        body=mensaje,
+        to=f'whatsapp:{numero}'
+    )
+    print(f"Mensaje enviado a {numero}: {mensaje}")
+
+# Función para verificar y enviar recordatorios
+async def verificar_recordatorios():
+    while True:
+        now = datetime.now()
+        for (numero, mensaje), hora_envio in list(recordatorios.items()):
+            if now >= hora_envio:
+                await enviar_mensaje(numero, mensaje)
+                del recordatorios[(numero, mensaje)]  # Eliminar el recordatorio enviado
+        await asyncio.sleep(60)  # Espera 60 segundos antes de verificar de nuevo
+
+# Función principal que inicia el bucle de eventos y programa recordatorios
+async def main():
+    # Ejemplo: agregar un recordatorio (reemplaza con el número y mensaje deseado)
+    await agregar_recordatorio("+526625228513", 1, "Este es tu recordatorio en WhatsApp!")
+
+    # Inicia la verificación de recordatorios en segundo plano
+    await verificar_recordatorios()
+
+# Ejecutar la función principal en el bucle de eventos de asyncio
+asyncio.run(main())
