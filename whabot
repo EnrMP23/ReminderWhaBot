@@ -1,0 +1,14 @@
+from twilio.rest import Client
+
+account_sid = 'AC1c8e94ef2abe842c5bb764d86d24a462'
+auth_token = 'c51bc46a81bdc47573e95be62a277108'
+client = Client(account_sid, auth_token)
+
+message = client.messages.create(
+  from_='whatsapp:+14155238886',
+  content_sid='HXb5b62575e6e4ff6129ad7c8efe1f983e',
+  content_variables='{"1":"12/1","2":"3pm"}',
+  to='whatsapp:+5216625228513'
+)
+
+print(message.sid)
