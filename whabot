@@ -1,73 +1,55 @@
-import asyncio
-from datetime import datetime, timedelta
-from twilio.rest import Client
-from flask import Flask, request, jsonify
+from flask import Flask, request
 from twilio.twiml.messaging_response import MessagingResponse
+from apscheduler.schedulers.background import BackgroundScheduler
+from datetime import datetime
+import pytz
 
-# Configuración de Twilio (reemplaza con tus credenciales)
-account_sid = 'YOUR_ACCOUNT_SID'
-auth_token = 'YOUR_AUTH_TOKEN'
-client = Client(account_sid, auth_token)
+app = Flask(__name__)
+scheduler = BackgroundScheduler()
+scheduler.start()
 
-# Diccionario para almacenar los recordatorios
+# Almacenar recordatorios
 recordatorios = {}
 
-# Configuración de Flask
-app = Flask(__name__)
+def enviar_notificacion(usuario, mensaje):
+    print(f"Notificación enviada a {usuario}: {mensaje}")  # Simulación
+    # Aquí puedes integrar un envío real a través de Twilio o WhatsApp
 
-# Función para agregar un recordatorio
-async def agregar_recordatorio(numero: str, minutos: int, mensaje: str):
-    hora_envio = datetime.now() + timedelta(minutes=minutos)
-    recordatorios[(numero, mensaje)] = hora_envio
-    print(f"Recordatorio programado para {numero} en {minutos} minutos.")
-
-# Función para enviar un mensaje de WhatsApp a través de Twilio
-async def enviar_mensaje(numero: str, mensaje: str):
-    client.messages.create(
-        from_='whatsapp:+14155238886',  # Número de Twilio para WhatsApp
-        body=mensaje,
-        to=f'whatsapp:{numero}'
-    )
-    print(f"Mensaje enviado a {numero}: {mensaje}")
-
-# Función para verificar y enviar recordatorios
-async def verificar_recordatorios():
-    while True:
-        now = datetime.now()
-        for (numero, mensaje), hora_envio in list(recordatorios.items()):
-            if now >= hora_envio:
-                await enviar_mensaje(numero, mensaje)
-                del recordatorios[(numero, mensaje)]  # Eliminar el recordatorio enviado
-        await asyncio.sleep(60)  # Espera 60 segundos antes de verificar de nuevo
-
-# Ruta para manejar los mensajes de WhatsApp entrantes
-@app.route('/whatsapp', methods=['POST'])
-def whatsapp_reply():
-    """Responder a los mensajes de WhatsApp"""
-    # Extraer el mensaje del usuario
-    incoming_msg = request.values.get('Body', '').strip()
-    sender = request.values.get('From', '')
-
-    # Crear una respuesta de Twilio
-    resp = MessagingResponse()
-    msg = resp.message()
-
-    # Si el mensaje es "/start", responder con un mensaje de bienvenida
-    if incoming_msg.lower() == "/start":
-        msg.body("¡Hola! Soy tu bot de recordatorios. Usa el comando /recordatorio para agregar un recordatorio.")
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    global recordatorios
+    data = request.form
+    usuario = data.get('From')
+    mensaje = data.get('Body').strip().lower()
+    
+    response = MessagingResponse()
+    reply = response.message()
+    
+    if mensaje.startswith("recordar"):
+        try:
+            partes = mensaje.split(" ", 2)
+            fecha_hora = partes[1]
+            texto_recordatorio = partes[2]
+            
+            fecha_hora_obj = datetime.strptime(fecha_hora, '%Y-%m-%d %H:%M')
+            if usuario not in recordatorios:
+                recordatorios[usuario] = []
+            
+            recordatorios[usuario].append((fecha_hora_obj, texto_recordatorio))
+            scheduler.add_job(
+                enviar_notificacion,
+                'date',
+                run_date=fecha_hora_obj,
+                args=[usuario, texto_recordatorio]
+            )
+            
+            reply.body("✅ Recordatorio agregado exitosamente.")
+        except Exception as e:
+            reply.body("❌ Error: Asegúrate de enviar el mensaje como 'recordar AAAA-MM-DD HH:MM mensaje'.")
     else:
-        # Si el mensaje no es un comando, responder con un mensaje de ayuda
-        msg.body("Envía '/start' para obtener ayuda o '/recordatorio <minutos> <mensaje>' para programar un recordatorio.")
+        reply.body("🤖 Comando no reconocido. Usa 'recordar AAAA-MM-DD HH:MM mensaje' para crear un recordatorio.")
+    
+    return str(response)
 
-    return str(resp)
-
-# Función principal que inicia el servidor y los recordatorios
-async def main():
-    # Inicia la verificación de recordatorios en segundo plano
-    await verificar_recordatorios()
-
-# Ejecutar el servidor Flask en un hilo separado y el loop asyncio para los recordatorios
-if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    loop.create_task(main())  # Ejecutar el bucle de recordatorios en segundo plano
-    app.run(debug=True, use_reloader=False)  # Ejecutar Flask
+if __name__ == '__main__':
+    app.run(debug=True)
