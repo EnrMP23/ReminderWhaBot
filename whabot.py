@@ -1,3 +1,4 @@
+import os
 from flask import Flask, request
 from twilio.twiml.messaging_response import MessagingResponse
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -13,7 +14,6 @@ recordatorios = {}
 
 def enviar_notificacion(usuario, mensaje):
     print(f"Notificación enviada a {usuario}: {mensaje}")  # Simulación
-    # Aquí puedes integrar un envío real a través de Twilio o WhatsApp
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
@@ -52,4 +52,5 @@ def webhook():
     return str(response)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5000))  # Obtén el puerto de la variable de entorno
+    app.run(host='0.0.0.0', port=port, debug=True)
