@@ -138,6 +138,7 @@ def main():
         entry_points=[CommandHandler("start", start)],
         states={
             CLIENTE: [MessageHandler(filters.TEXT & ~filters.COMMAND, cliente_nombre)],
+            CLIENTE_DIRECCION: [MessageHandler(filters.TEXT & ~filters.COMMAND, cliente_direccion)],
             PRODUCTOS: [MessageHandler(filters.TEXT & ~filters.COMMAND, agregar_producto)],
             MAS_PRODUCTOS: [
                 MessageHandler(filters.Regex(r'^\d+$'), agregar_cantidad),  # Aquí se usa Regex en lugar de regex
