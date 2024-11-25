@@ -141,6 +141,7 @@ def main():
         entry_points=[CommandHandler("start", start)],
         states={
             CLIENTE: [MessageHandler(filters.TEXT & ~filters.COMMAND, cliente_nombre)],
+            CLIENTE_RFC: [MessageHandler(filters.TEXT & ~filters.COMMAND, cliente_rfc)],  # Nueva etapa RFC
             CLIENTE_DIRECCION: [MessageHandler(filters.TEXT & ~filters.COMMAND, cliente_direccion)],
             PRODUCTOS: [MessageHandler(filters.TEXT & ~filters.COMMAND, agregar_producto)],
             CANTIDAD: [MessageHandler(filters.Regex(r'^\d+$'), agregar_cantidad)],  # Solo cantidad
