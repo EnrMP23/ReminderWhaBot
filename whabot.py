@@ -14,11 +14,10 @@ datos_usuarios = {}
 
 # Diccionario para guardar los datos fiscales
 emisores = {
-    "nombre": "ENRIQUE MAYNEZ PEREZ",  # Nombre de la empresa
-    "rfc": "MAPE020823JV6",  # Tu RFC
-    "domicilio": "AVENIDA PLAN DE IGUALA 269, HERMOSILLO, SONORA, MÉXICO",  # Tu domicilio fiscal
-    "regimen_fiscal": "INGRESOS ASIMILADOS A SALARIOS",  # Tu régimen fiscal
-    "correo": "enrmp2002@gmail.com",  # Tu correo electrónico
+    "nombre": "Décima Avenida S.A. de C.V.",
+    "rfc": "DASA941218H14",
+    "direccion": "Calle Ficticia 123, Ciudad de México, CP 12345",  # Verifica que esta clave esté correctamente definida
+    "regimen": "Régimen General de Ley Personas Morales",
 }
 
 # Clase para generar la factura
@@ -32,7 +31,7 @@ class Factura(FPDF):
         self.set_font('Arial', '', 10)
         self.cell(0, 10, f'Emisor: {emisores["nombre"]}', 0, 1)
         self.cell(0, 10, f'RFC: {emisores["rfc"]}', 0, 1)
-        self.cell(0, 10, f'Dirección: {emisores["direccion"]}', 0, 1)
+        self.cell(0, 10, f'Dirección: {emisores["direccion"]}', 0, 1)  # Asegúrate de que esta línea no tenga errores
         self.cell(0, 10, f'Régimen Fiscal: {emisores["regimen"]}', 0, 1)
         self.ln(5)
 
