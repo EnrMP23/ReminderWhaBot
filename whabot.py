@@ -17,7 +17,7 @@ datos_usuarios = {}
 class Factura(FPDF):
     def header(self):
         self.set_font('Arial', 'B', 12)
-        self.cell(0, 10, 'Décima Avenida - Factura', 0, 1, 'C')
+        self.cell(0, 10, 'ENRIQUE MAYNEZ PEREZ - Factura', 0, 1, 'C')
 
     def agregar_cliente(self, cliente):
         self.set_font('Arial', '', 10)
