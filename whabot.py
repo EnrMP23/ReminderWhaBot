@@ -10,6 +10,8 @@ WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://reminderwhabot-vsig.onrender.com
 # Etapas del flujo de conversación
 CLIENTE, CLIENTE_DIRECCION, CLIENTE_RFC, PRODUCTOS, CANTIDAD, PRECIO, CONFIRMAR = range(7)
 
+datos_usuarios = {}
+
 # Diccionario para guardar los datos fiscales
 DATOS_FISCALES_EMISOR = {
     "nombre": "ENRIQUE MAYNEZ PEREZ",  # Nombre de la empresa
