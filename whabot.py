@@ -86,20 +86,25 @@ async def agregar_cantidad(update: Update, context: CallbackContext) -> int:
 async def agregar_precio(update: Update, context: CallbackContext) -> int:
     chat_id = update.message.chat_id
     producto_actual = datos_usuarios[chat_id]["productos"][-1]
-    producto_actual["precio"] = float(update.message.text)
-    producto_actual["subtotal"] = producto_actual["cantidad"] * producto_actual["precio"]
-    await update.message.reply_text("¿Deseas agregar otro producto? (sí/no)")
-    return CONFIRMAR
+    try:
+        producto_actual["precio"] = float(update.message.text)
+        producto_actual["subtotal"] = producto_actual["cantidad"] * producto_actual["precio"]
+        await update.message.reply_text("¿Deseas agregar otro producto? (sí/no)")
+        return CONFIRMAR  # Pasa a la etapa de confirmación
+    except ValueError:
+        await update.message.reply_text("Por favor, ingresa un precio válido.")
+        return MAS_PRODUCTOS  # Si el precio no es válido, mantiene al usuario en MAS_PRODUCTOS
 
 # Confirma si se deben agregar más productos o no
 async def confirmar(update: Update, context: CallbackContext) -> int:
     if update.message.text.lower() == "sí":
         await update.message.reply_text("Dime el nombre del siguiente producto.")
-        return PRODUCTOS
+        return PRODUCTOS  # Si el usuario desea agregar más productos, regresa a PRODUCTOS
     else:
         chat_id = update.message.chat_id
         await generar_factura(update, chat_id)
-        return ConversationHandler.END
+        return ConversationHandler.END  # Si el usuario no desea agregar más, termina la conversación
+
 
 # Genera la factura y la envía al usuario
 async def generar_factura(update: Update, chat_id: int):
