@@ -1,11 +1,11 @@
 import os
 from telegram import Update
-from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, CallbackContext, ConversationHandler, filters
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, CallbackContext, ConversationHandler, filters
 from fpdf import FPDF
 
 # Configurar el bot
 TELEGRAM_TOKEN = os.getenv("BOT_TOKEN", "7163814190:AAGzhkR3H3SLBQc4LF4Zxi3J4_RnKd26u1M")  # Usa tu propio token
-WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://reminderwhabot-vsig.onrender.com/webhook")
+WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://reminderwhabot-vsig.onrender.com/webhook")  # URL de tu webhook en Render
 
 # Etapas del flujo de conversación
 CLIENTE, PRODUCTOS, MAS_PRODUCTOS, CONFIRMAR = range(4)
@@ -130,7 +130,7 @@ async def cancelar(update: Update, context: CallbackContext) -> int:
 
 # Función principal
 def main():
-    application = Application.builder().token(TELEGRAM_TOKEN).build()
+    application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 
     # Configuración del flujo de conversación
     conv_handler = ConversationHandler(
@@ -148,19 +148,16 @@ def main():
     )
 
     application.add_handler(conv_handler)
-    application.run_polling()
-
-
-if __name__ == '__main__':
-    application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
-
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("cancelar", cancelar))
+    
+    # Configuración del Webhook
     application.run_webhook(
-        listen="0.0.0.0",
-        port=8443,
-        url_path="/webhook",
-        webhook_url=WEBHOOK_URL
+        listen="0.0.0.0",  # Escuchar en todas las interfaces de red
+        port=8443,          # Puerto por defecto para webhook
+        url_path="/webhook",  # Ruta del webhook
+        webhook_url=WEBHOOK_URL  # URL completa del webhook
     )
 
     print("BOT FUNCIONANDO CORRECTAMENTE")
+
+if __name__ == '__main__':
+    main()
