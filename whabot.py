@@ -1,6 +1,6 @@
 import os
 from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, CallbackContext, ConversationHandler, filters
+from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, CallbackContext, ConversationHandler, filters
 from fpdf import FPDF
 
 # Configurar el bot
