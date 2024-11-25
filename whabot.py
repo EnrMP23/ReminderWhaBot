@@ -139,8 +139,8 @@ def main():
             CLIENTE: [MessageHandler(filters.TEXT & ~filters.COMMAND, cliente_nombre)],
             PRODUCTOS: [MessageHandler(filters.TEXT & ~filters.COMMAND, agregar_producto)],
             MAS_PRODUCTOS: [
-                MessageHandler(filters.regex(r'^\d+$'), agregar_cantidad),
-                MessageHandler(filters.regex(r'^\d+(\.\d+)?$'), agregar_precio),
+                MessageHandler(filters.Regex(r'^\d+$'), agregar_cantidad),
+                MessageHandler(filters.Regex(r'^\d+(\.\d+)?$'), agregar_precio),
             ],
             CONFIRMAR: [MessageHandler(filters.TEXT & ~filters.COMMAND, confirmar)],
         },
