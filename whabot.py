@@ -21,10 +21,52 @@ DATOS_FISCALES_EMISOR = {
     "correo": "enrmp2002@gmail.com",  # Tu correo electrónico
 }
 
+# Clase para generar la factura
+class Factura(FPDF):
+    def header(self):
+        self.set_font('Arial', 'B', 12)
+        self.cell(0, 10, 'Factura', 0, 1, 'C')
+        self.ln(5)
+
+        # Datos del emisor (como encabezado)
+        self.set_font('Arial', '', 10)
+        self.cell(0, 10, f'Emisor: {emisores["nombre"]}', 0, 1)
+        self.cell(0, 10, f'RFC: {emisores["rfc"]}', 0, 1)
+        self.cell(0, 10, f'Dirección: {emisores["direccion"]}', 0, 1)
+        self.cell(0, 10, f'Régimen Fiscal: {emisores["regimen"]}', 0, 1)
+        self.ln(5)
+
+    def agregar_cliente(self, cliente):
+        self.set_font('Arial', '', 10)
+        self.cell(0, 10, f'Cliente: {cliente["nombre"]}', 0, 1)
+        self.cell(0, 10, f'Dirección: {cliente["direccion"]}', 0, 1)
+        self.cell(0, 10, f'RFC: {cliente["rfc"]}', 0, 1)  # Agregar RFC
+
+    def agregar_productos(self, productos):
+        self.set_font('Arial', 'B', 10)
+        self.cell(40, 10, 'Producto', 1)
+        self.cell(30, 10, 'Cantidad', 1)
+        self.cell(30, 10, 'Precio Unitario', 1)
+        self.cell(30, 10, 'Subtotal', 1)
+        self.ln()
+        self.set_font('Arial', '', 10)
+        for p in productos:
+            self.cell(40, 10, p['nombre'], 1)
+            self.cell(30, 10, str(p['cantidad']), 1)
+            self.cell(30, 10, f'${p["precio"]:.2f}', 1)
+            self.cell(30, 10, f'${p["subtotal"]:.2f}', 1)
+            self.ln()
+
+    def agregar_total(self, total):
+        self.set_font('Arial', 'B', 10)
+        self.cell(100, 10, '', 0)
+        self.cell(30, 10, 'Total', 1)
+        self.cell(30, 10, f'${total:.2f}', 1)
+
 # Función de inicio de la conversación
 async def start(update: Update, context: CallbackContext) -> int:
-    await update.message.reply_text("¡Bienvenido a Generador de Facturas! Vamos a generar una factura. Por favor, dime el nombre del cliente.")
-    datos_usuarios[update.message.chat_id] = {"cliente": {}, "productos": []}
+    await update.message.reply_text("¡Bienvenido a Generador de Facturas! Vamos a generar una factura. Por favor, dime el nombre del cliente.")  # Asegúrate de usar 'await'
+    datos_usuarios[update.message.chat_id] = {"cliente": {}, "productos": []}  # Aquí se inicializa correctamente
     return CLIENTE
 
 # Solicita el nombre del cliente
@@ -32,21 +74,21 @@ async def cliente_nombre(update: Update, context: CallbackContext) -> int:
     chat_id = update.message.chat_id
     datos_usuarios[chat_id]["cliente"]["nombre"] = update.message.text
     await update.message.reply_text("¿Cuál es el RFC del cliente?")
-    return CLIENTE_RFC  # Redirige a la solicitud del RFC del cliente
+    return CLIENTE_RFC
 
 # Solicita el RFC del cliente
 async def cliente_rfc(update: Update, context: CallbackContext) -> int:
     chat_id = update.message.chat_id
     datos_usuarios[chat_id]["cliente"]["rfc"] = update.message.text
     await update.message.reply_text("¿Cuál es la dirección del cliente?")
-    return CLIENTE_DIRECCION  # Redirige a la solicitud de dirección
+    return CLIENTE_DIRECCION
 
 # Solicita la dirección del cliente
 async def cliente_direccion(update: Update, context: CallbackContext) -> int:
     chat_id = update.message.chat_id
     datos_usuarios[chat_id]["cliente"]["direccion"] = update.message.text
     await update.message.reply_text("Dime el nombre del primer producto.")
-    return PRODUCTOS  # Regresa a la etapa PRODUCTOS
+    return PRODUCTOS
 
 # Agrega un producto a la factura
 async def agregar_producto(update: Update, context: CallbackContext) -> int:
@@ -60,26 +102,18 @@ async def agregar_producto(update: Update, context: CallbackContext) -> int:
 async def agregar_cantidad(update: Update, context: CallbackContext) -> int:
     chat_id = update.message.chat_id
     producto_actual = datos_usuarios[chat_id]["productos"][-1]
-    try:
-        producto_actual["cantidad"] = int(update.message.text)
-        await update.message.reply_text("¿Cuál es el precio unitario?")
-        return PRECIO
-    except ValueError:
-        await update.message.reply_text("Por favor, ingresa un número válido para la cantidad.")
-        return CANTIDAD
+    producto_actual["cantidad"] = int(update.message.text)
+    await update.message.reply_text("¿Cuál es el precio unitario?")
+    return PRECIO
 
 # Agrega el precio del producto y calcula el subtotal
 async def agregar_precio(update: Update, context: CallbackContext) -> int:
     chat_id = update.message.chat_id
     producto_actual = datos_usuarios[chat_id]["productos"][-1]
-    try:
-        producto_actual["precio"] = float(update.message.text)
-        producto_actual["subtotal"] = producto_actual["cantidad"] * producto_actual["precio"]
-        await update.message.reply_text("¿Deseas agregar otro producto? (sí/no)")
-        return CONFIRMAR
-    except ValueError:
-        await update.message.reply_text("Por favor, ingresa un precio válido.")
-        return PRECIO
+    producto_actual["precio"] = float(update.message.text)
+    producto_actual["subtotal"] = producto_actual["cantidad"] * producto_actual["precio"]
+    await update.message.reply_text("¿Deseas agregar otro producto? (sí/no)")
+    return CONFIRMAR
 
 # Confirma si se deben agregar más productos o no
 async def confirmar(update: Update, context: CallbackContext) -> int:
@@ -101,23 +135,8 @@ async def generar_factura(update: Update, chat_id: int):
     # Crear la factura en PDF
     factura = Factura()
     factura.add_page()
-    
-    # Agregar datos fiscales del emisor
-    factura.set_font('Arial', 'B', 10)
-    factura.cell(0, 10, f'Emisor: {DATOS_FISCALES_EMISOR["nombre"]}', 0, 1)
-    factura.cell(0, 10, f'RFC: {DATOS_FISCALES_EMISOR["rfc"]}', 0, 1)
-    factura.cell(0, 10, f'Domicilio: {DATOS_FISCALES_EMISOR["domicilio"]}', 0, 1)
-    factura.cell(0, 10, f'Regimen Fiscal: {DATOS_FISCALES_EMISOR["regimen_fiscal"]}', 0, 1)
-    
-    # Agregar datos fiscales del receptor (cliente)
-    factura.cell(0, 10, f'Cliente: {cliente["nombre"]}', 0, 1)
-    factura.cell(0, 10, f'RFC: {cliente["rfc"]}', 0, 1)
-    factura.cell(0, 10, f'Dirección: {cliente["direccion"]}', 0, 1)
-    
-    # Agregar productos
+    factura.agregar_cliente(cliente)
     factura.agregar_productos(productos)
-    
-    # Agregar total
     factura.agregar_total(total)
 
     # Guardar la factura en un archivo
@@ -154,7 +173,7 @@ def main():
     )
 
     application.add_handler(conv_handler)
-
+    
     # Configuración del Webhook
     application.run_webhook(
         listen="0.0.0.0",  # Escuchar en todas las interfaces de red
