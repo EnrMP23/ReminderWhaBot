@@ -1,5 +1,6 @@
 from telegram import Update, ReplyKeyboardRemove
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, ConversationHandler
+from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackContext, ConversationHandler
+from telegram import ext
 from fpdf import FPDF
 import io
 import os
@@ -140,13 +141,14 @@ def main():
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler("start", start)],
         states={
-            CLIENTE: [MessageHandler(Filters.text & ~Filters.command, cliente_nombre)],
-            PRODUCTOS: [MessageHandler(Filters.text & ~Filters.command, agregar_producto)],
+            CLIENTE: [MessageHandler(ext.filters.TEXT & ~ext.filters.COMMAND, cliente_nombre)
+],
+            PRODUCTOS: [MessageHandler(ext.Filters.text & ~Filters.command, agregar_producto)],
             MAS_PRODUCTOS: [
-                MessageHandler(Filters.regex(r'^\d+$'), agregar_cantidad),
-                MessageHandler(Filters.regex(r'^\d+(\.\d+)?$'), agregar_precio),
+                MessageHandler(ext.Filters.regex(r'^\d+$'), agregar_cantidad),
+                MessageHandler(ext.Filters.regex(r'^\d+(\.\d+)?$'), agregar_precio),
             ],
-            CONFIRMAR: [MessageHandler(Filters.text & ~Filters.command, confirmar)],
+            CONFIRMAR: [MessageHandler(ext.Filters.text & ~Filters.command, confirmar)],
         },
         fallbacks=[CommandHandler("cancelar", cancelar)],
     )
