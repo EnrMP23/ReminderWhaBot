@@ -1,5 +1,5 @@
-fpdf==1.7.2
-python-telegram-bot==20.3
 python-telegram-bot[webhooks]
 Flask>=2.3.3
 datetime
+python-telegram-bot==20.0
+fpdf
