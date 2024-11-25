@@ -56,7 +56,7 @@ async def start(update: Update, context: CallbackContext) -> int:
 async def cliente_nombre(update: Update, context: CallbackContext) -> int:
     chat_id = update.message.chat_id
     datos_usuarios[chat_id]["cliente"]["nombre"] = update.message.text
-    update.message.reply_text("¿Cuál es la dirección del cliente?")
+    await update.message.reply_text("¿Cuál es la dirección del cliente?")
     return CLIENTE
 
 # Solicita la dirección del cliente
