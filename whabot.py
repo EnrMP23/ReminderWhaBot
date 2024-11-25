@@ -1,6 +1,12 @@
 from telegram import Update, ReplyKeyboardRemove
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, ConversationHandler
 from fpdf import FPDF
+import io
+import os
+
+# Configurar el bot
+TELEGRAM_TOKEN = os.getenv("BOT_TOKEN", "7163814190:AAGzhkR3H3SLBQc4LF4Zxi3J4_RnKd26u1M")  # Usar una variable de entorno para el token
+WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://reminderwhabot-vsig.onrender.com/webhook")
 
 # Etapas del flujo
 CLIENTE, PRODUCTOS, MAS_PRODUCTOS, CONFIRMAR = range(4)
@@ -126,7 +132,7 @@ def cancelar(update: Update, context: CallbackContext) -> int:
 
 # Configuración del bot
 def main():
-    TOKEN = "7163814190:AAGzhkR3H3SLBQc4LF4Zxi3J4_RnKd26u1M"
+    TOKEN = TELEGRAM_TOKEN
     updater = Updater(TOKEN)
     dp = updater.dispatcher
 
@@ -149,5 +155,16 @@ def main():
     updater.start_polling()
     updater.idle()
 
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
+
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("cancelar", cancelar))
+    application.run_webhook(
+        listen="0.0.0.0",
+        port=8443,
+        url_path="/webhook",
+        webhook_url=WEBHOOK_URL
+    )
+
+    print("BOT FUNCIONANDO CORRECTAMENTE")
