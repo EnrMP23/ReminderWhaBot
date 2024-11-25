@@ -13,7 +13,7 @@ CLIENTE, CLIENTE_DIRECCION, CLIENTE_RFC, PRODUCTOS, CANTIDAD, PRECIO, CONFIRMAR 
 datos_usuarios = {}
 
 # Diccionario para guardar los datos fiscales
-DATOS_FISCALES_EMISOR = {
+emisores = {
     "nombre": "ENRIQUE MAYNEZ PEREZ",  # Nombre de la empresa
     "rfc": "MAPE020823JV6",  # Tu RFC
     "domicilio": "AVENIDA PLAN DE IGUALA 269, HERMOSILLO, SONORA, MÉXICO",  # Tu domicilio fiscal
