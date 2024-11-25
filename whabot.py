@@ -47,9 +47,10 @@ class Factura(FPDF):
 
 # Función de inicio de la conversación
 async def start(update: Update, context: CallbackContext) -> int:
-    update.message.reply_text("¡Bienvenido a Generador de Facturas! Vamos a generar una factura. Por favor, dime el nombre del cliente.")
+    await update.message.reply_text("¡Bienvenido a Generador de Facturas! Vamos a generar una factura. Por favor, dime el nombre del cliente.")  # Asegúrate de usar 'await'
     datos_usuarios[update.message.chat_id] = {"cliente": {}, "productos": []}
     return CLIENTE
+
 
 # Solicita el nombre del cliente
 async def cliente_nombre(update: Update, context: CallbackContext) -> int:
