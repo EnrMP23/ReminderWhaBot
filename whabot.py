@@ -8,7 +8,7 @@ TELEGRAM_TOKEN = os.getenv("BOT_TOKEN", "7163814190:AAGzhkR3H3SLBQc4LF4Zxi3J4_Rn
 WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://reminderwhabot-vsig.onrender.com/webhook")  # URL de tu webhook en Render
 
 # Etapas del flujo de conversación
-CLIENTE, PRODUCTOS, MAS_PRODUCTOS, CONFIRMAR = range(5)
+CLIENTE, CLIENTE_DIRECCION, PRODUCTOS, MAS_PRODUCTOS, CONFIRMAR = range(5)
 
 # Diccionario para guardar datos temporales de cada usuario
 datos_usuarios = {}
