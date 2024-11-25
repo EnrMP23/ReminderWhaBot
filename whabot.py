@@ -63,7 +63,7 @@ async def cliente_nombre(update: Update, context: CallbackContext) -> int:
 async def cliente_direccion(update: Update, context: CallbackContext) -> int:
     chat_id = update.message.chat_id
     datos_usuarios[chat_id]["cliente"]["direccion"] = update.message.text
-    update.message.reply_text("Dime el nombre del primer producto.")
+    await update.message.reply_text("Dime el nombre del primer producto.")
     return PRODUCTOS
 
 # Agrega un producto a la factura
@@ -71,7 +71,7 @@ async def agregar_producto(update: Update, context: CallbackContext) -> int:
     chat_id = update.message.chat_id
     producto = {"nombre": update.message.text}
     datos_usuarios[chat_id]["productos"].append(producto)
-    update.message.reply_text("¿Cuántas unidades?")
+    await update.message.reply_text("¿Cuántas unidades?")
     return MAS_PRODUCTOS
 
 # Agrega la cantidad del producto
@@ -79,7 +79,7 @@ async def agregar_cantidad(update: Update, context: CallbackContext) -> int:
     chat_id = update.message.chat_id
     producto_actual = datos_usuarios[chat_id]["productos"][-1]
     producto_actual["cantidad"] = int(update.message.text)
-    update.message.reply_text("¿Cuál es el precio unitario?")
+    await update.message.reply_text("¿Cuál es el precio unitario?")
     return MAS_PRODUCTOS
 
 # Agrega el precio del producto y calcula el subtotal
@@ -88,13 +88,13 @@ async def agregar_precio(update: Update, context: CallbackContext) -> int:
     producto_actual = datos_usuarios[chat_id]["productos"][-1]
     producto_actual["precio"] = float(update.message.text)
     producto_actual["subtotal"] = producto_actual["cantidad"] * producto_actual["precio"]
-    update.message.reply_text("¿Deseas agregar otro producto? (sí/no)")
+    await update.message.reply_text("¿Deseas agregar otro producto? (sí/no)")
     return CONFIRMAR
 
 # Confirma si se deben agregar más productos o no
 async def confirmar(update: Update, context: CallbackContext) -> int:
     if update.message.text.lower() == "sí":
-        update.message.reply_text("Dime el nombre del siguiente producto.")
+        await update.message.reply_text("Dime el nombre del siguiente producto.")
         return PRODUCTOS
     else:
         chat_id = update.message.chat_id
