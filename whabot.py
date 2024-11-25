@@ -42,7 +42,7 @@ class Factura(FPDF):
 
 # Inicia el flujo
 def start(update: Update, context: CallbackContext) -> int:
-    update.message.reply_text("¡Bienvenido a Décima Avenida! Vamos a generar una factura. Por favor, dime el nombre del cliente.")
+    update.message.reply_text("¡Bienvenido a Generador de Facturas! Vamos a generar una factura. Por favor, dime el nombre del cliente.")
     datos_usuarios[update.message.chat_id] = {"cliente": {}, "productos": []}
     return CLIENTE
 
@@ -126,7 +126,7 @@ def cancelar(update: Update, context: CallbackContext) -> int:
 
 # Configuración del bot
 def main():
-    TOKEN = "TU_TOKEN_AQUÍ"
+    TOKEN = "7163814190:AAGzhkR3H3SLBQc4LF4Zxi3J4_RnKd26u1M"
     updater = Updater(TOKEN)
     dp = updater.dispatcher
 
