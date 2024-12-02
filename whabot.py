@@ -63,13 +63,14 @@ def analyze_local_visitor_performance(team_id, is_home=True):
 
     games_count = len(relevant_games)
     return points_scored / max(games_count, 1), points_allowed / max(games_count, 1), wins
+    
 
 def predict_nfl_result(home_team_id, away_team_id, home_team_name, away_team_name):
     home_stats = get_team_stats_nfl(home_team_id)
     away_stats = get_team_stats_nfl(away_team_id)
 
     if not home_stats or not away_stats:
-        return None, None, None, None, None, None, None, None
+        return None, None, None, None, None, None  # Solo 6 valores ahora
 
     # Rendimiento reciente
     home_recent_avg, home_allowed_avg, home_wins = analyze_local_visitor_performance(home_team_id, is_home=True)
@@ -104,7 +105,7 @@ away_team_id = "ID_EQUIPO_VISITANTE"
 home_team_name = "EQUIPO_LOCAL"
 away_team_name = "EQUIPO_VISITANTE"
 
-resultado, prob_local, prob_visitante, prom_local, prom_visitante, stats_local, stats_visitante = predict_nfl_result(
+resultado, prob_local, prob_visitante, prom_local, prom_visitante, stats_local, stats_visitante, _ = predict_nfl_result(
     home_team_id, away_team_id, home_team_name, away_team_name)
 
 async def start(update: types.Message):
