@@ -33,21 +33,16 @@ def get_nfl_matches_next_day():
     next_day = datetime.today() + timedelta(days=1)
     next_day_str = next_day.strftime('%Y-%m-%d')  # Formatear la fecha como YYYY-MM-DD
 
-    # Solicitar los partidos de la temporada
-    url = f"https://api.sportsdata.io/v3/nfl/scores/json/GamesBySeason/{season}"
+    # Solicitar los partidos para el día siguiente
+    url = f"https://api.sportsdata.io/v3/nfl/scores/json/GamesByDate/{next_day_str}"
     response = requests.get(url, headers=headers)
 
     if response.status_code == 200:
-        all_matches = response.json()
-        # Filtrar los partidos que ocurren en el día siguiente
-        matches_next_day = [
-            match for match in all_matches
-            if match['Date'].startswith(next_day_str)
-        ]
-        return matches_next_day
+        return response.json()  # Devuelve los partidos para el día siguiente
     else:
         logging.error(f"Error al obtener partidos para el día siguiente: {response.status_code}")
         return []
+
 
 
 # Función para el comando /games
