@@ -9,6 +9,8 @@ import pytz
 import numpy as np
 from difflib import get_close_matches
 from math import pi
+import logging
+
 
 # Configuración de logging
 logging.basicConfig(
