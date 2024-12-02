@@ -14,7 +14,7 @@ logging.basicConfig(
 
 # Variables de configuración
 API_KEY = os.getenv("SPORTSDATAIO_DATA_API_KEY", "205bca4e7d76426ea69a738d9ef11641")  # API key
-TELEGRAM_TOKEN = os.getenv("BOT_TOKEN", "tu_token_aqui")  # Token de tu bot de Telegram
+TELEGRAM_TOKEN = os.getenv("BOT_TOKEN", "7163814190:AAGzhkR3H3SLBQc4LF4Zxi3J4_RnKd26u1M")  # Token de tu bot de Telegram
 WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://tuservidor.com/webhook")  # URL pública de tu webhook
 season = 2024
 
