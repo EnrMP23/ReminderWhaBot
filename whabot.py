@@ -108,6 +108,7 @@ away_team_name = "EQUIPO_VISITANTE"
 resultado, prob_local, prob_visitante, prom_local, prom_visitante, stats_local, stats_visitante, _ = predict_nfl_result(
     home_team_id, away_team_id, home_team_name, away_team_name)
 
+
 async def start(update: types.Message):
     await update.answer("🔍 Obteniendo información de los partidos...")
     matches = await get_nfl_matches()
