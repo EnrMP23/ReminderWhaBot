@@ -11,7 +11,6 @@ from difflib import get_close_matches
 from math import pi
 import logging
 
-
 # Configuración de logging
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -23,10 +22,6 @@ API_KEY = os.getenv("SPORTSDATAIO_DATA_API_KEY", "205bca4e7d76426ea69a738d9ef116
 TELEGRAM_TOKEN = os.getenv("BOT_TOKEN", "7163814190:AAGzhkR3H3SLBQc4LF4Zxi3J4_RnKd26u1M")  # Reemplaza con tu token real
 WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://reminderwhabot-vsig.onrender.com/webhook")  # URL pública de tu webhook
 
-BASE_URL = "https://api.sportsdata.io/v3/nfl/scores/json/GamesBySeason/2024"
-TEAMS_URL = "https://api.sportsdata.io/v3/nfl/scores/json/Teams"
-STANDINGS_URL = "https://api.sportsdata.io/v3/nfl/scores/json/Standings/2024"
-
 # Umbrales
 confidence_threshold = 0.55
 close_threshold = 0.10
@@ -34,20 +29,22 @@ close_threshold = 0.10
 # Funciones auxiliares
 def get_nfl_matches(season='2024'):
     headers = {'Ocp-Apim-Subscription-Key': API_KEY}
-    response = requests.get(f"https://api.sportsdata.io/v3/nfl/scores/json/Games/{season}", headers=headers)
+    # Endpoint correcto para obtener los partidos por temporada
+    response = requests.get(f"https://api.sportsdata.io/v3/nfl/scores/json/GamesBySeason/2024", headers=headers)
 
     if response.status_code == 200:
-        return response.json()
+        return response.json()  # Devuelve la lista de partidos
     else:
         logging.error(f"Error al obtener partidos de la NFL: {response.status_code}")
         return []
 
 def get_team_stats_nfl(team_id):
     headers = {'Ocp-Apim-Subscription-Key': API_KEY}
-    response = requests.get(f"{TEAMS_URL}/{team_id}", headers=headers)
+    # Endpoint correcto para obtener estadísticas de un equipo
+    response = requests.get(f"https://api.sportsdata.io/v3/nfl/scores/json/Team/{team_id}", headers=headers)
 
     if response.status_code == 200:
-        return response.json()
+        return response.json()  # Devuelve las estadísticas del equipo
     else:
         logging.error(f"Error al obtener estadísticas del equipo {team_id}: {response.status_code}")
         return {}
