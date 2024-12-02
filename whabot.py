@@ -1,15 +1,10 @@
 import requests
-import matplotlib.pyplot as plt
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
-import io
+import logging
 import os
 from datetime import datetime
 import pytz
-import numpy as np
-from difflib import get_close_matches
-from math import pi
-import logging
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
 # Configuración de logging
 logging.basicConfig(
@@ -19,23 +14,23 @@ logging.basicConfig(
 
 # Variables de configuración
 API_KEY = os.getenv("SPORTSDATAIO_DATA_API_KEY", "205bca4e7d76426ea69a738d9ef11641")  # API key
-TELEGRAM_TOKEN = os.getenv("BOT_TOKEN", "7163814190:AAGzhkR3H3SLBQc4LF4Zxi3J4_RnKd26u1M")  # Reemplaza con tu token real
-WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://reminderwhabot-vsig.onrender.com/webhook")  # URL pública de tu webhook
+TELEGRAM_TOKEN = os.getenv("BOT_TOKEN", "tu_token_aqui")  # Token de tu bot de Telegram
+WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://tuservidor.com/webhook")  # URL pública de tu webhook
 season = 2024
 
-BASE_URL = "https://api.sportsdata.io/v3/nfl/scores/json/CurrentSeason?key=205bca4e7d76426ea69a738d9ef11641"
-STANDINGS_URL = "https://api.sportsdata.io/v3/nfl/scores/json/Standings/2024"
+# URL base para los endpoints de la API
+BASE_URL = f"https://api.sportsdata.io/v3/nfl/scores/json/GamesBySeason/{season}"
+STANDINGS_URL = f"https://api.sportsdata.io/v3/nfl/scores/json/Standings/{season}"
 TEAMS_URL = "https://api.sportsdata.io/v3/nfl/scores/json/Teams"
 
-# Umbrales
-confidence_threshold = 0.55
-close_threshold = 0.10
+# Definir los headers para la solicitud
+headers = {'Ocp-Apim-Subscription-Key': API_KEY}
 
 # Funciones auxiliares
+
 def get_nfl_matches(season='2024'):
-    headers = {'Ocp-Apim-Subscription-Key': API_KEY}
-    # Endpoint correcto para obtener los partidos por temporada
-    response = requests.get(f"https://api.sportsdata.io/v3/nfl/scores/json/GamesBySeason/2024", headers=headers)
+    """Obtiene los partidos de la temporada."""
+    response = requests.get(f"https://api.sportsdata.io/v3/nfl/scores/json/GamesBySeason/{season}", headers=headers)
 
     if response.status_code == 200:
         return response.json()  # Devuelve la lista de partidos
@@ -44,8 +39,7 @@ def get_nfl_matches(season='2024'):
         return []
 
 def get_team_stats_nfl(team_id):
-    headers = {'Ocp-Apim-Subscription-Key': API_KEY}
-    # Endpoint correcto para obtener estadísticas de un equipo
+    """Obtiene estadísticas de un equipo."""
     response = requests.get(f"https://api.sportsdata.io/v3/nfl/scores/json/Team/{team_id}", headers=headers)
 
     if response.status_code == 200:
@@ -55,6 +49,7 @@ def get_team_stats_nfl(team_id):
         return {}
 
 def analyze_local_visitor_performance(team_id, is_home=True):
+    """Analiza el rendimiento de un equipo en casa o fuera de casa."""
     last_5_games = get_last_5_games_nfl(team_id)
     relevant_games = [game for game in last_5_games if (is_home and game['IsHome']) or (not is_home and not game['IsHome'])]
 
@@ -66,6 +61,7 @@ def analyze_local_visitor_performance(team_id, is_home=True):
     return points_scored / max(games_count, 1), points_allowed / max(games_count, 1), wins
 
 def predict_nfl_result(home_team_id, away_team_id, home_team_name, away_team_name):
+    """Predice el resultado de un partido basado en estadísticas."""
     home_stats = get_team_stats_nfl(home_team_id)
     away_stats = get_team_stats_nfl(away_team_id)
 
@@ -90,7 +86,7 @@ def predict_nfl_result(home_team_id, away_team_id, home_team_name, away_team_nam
     away_win_probability = (estimated_away_score / total_points) * 100 if total_points > 0 else 50
 
     # Predicción
-    if abs(home_win_probability - away_win_probability) < close_threshold * 100:
+    if abs(home_win_probability - away_win_probability) < 10:  # Umbral de diferencia
         result = "Juego cerrado, difícil de predecir"
     elif home_win_probability > away_win_probability:
         result = f"{home_team_name} tiene más probabilidades de ganar"
@@ -99,6 +95,7 @@ def predict_nfl_result(home_team_id, away_team_id, home_team_name, away_team_nam
 
     return result, home_win_probability, away_win_probability
 
+# Función para el comando /games
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("🔍 Obteniendo información de los partidos...")
     matches = get_nfl_matches()
@@ -109,7 +106,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             home_team = match['HomeTeam']
             away_team = match['AwayTeam']
             utc_date = datetime.strptime(match['Date'], '%Y-%m-%dT%H:%M:%S')
-            local_date = utc_date.replace(tzinfo=pytz.utc).astimezone(SONORA_TZ)
+            local_date = utc_date.replace(tzinfo=pytz.utc).astimezone(pytz.timezone('America/Hermosillo'))  # Hora Sonora
             formatted_date = local_date.strftime('Fecha: %d/%m/%Y Hora: %H:%M (Hora Sonora)')
 
             message_text += f"🔹 {match['GameKey']}: {home_team} vs {away_team} - {formatted_date}\n"
@@ -119,6 +116,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text("🥱 No se encontraron partidos disponibles. Intenta más tarde.")
 
+# Función para el comando /predict
 async def predict(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if len(context.args) != 1:
         await update.message.reply_text("❌ Por favor proporciona un ID de partido válido.")
@@ -141,25 +139,7 @@ async def predict(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text("❌ Partido no encontrado.")
 
-# Definir los headers para la solicitud
-headers = {'Ocp-Apim-Subscription-Key': API_KEY}
-
-# Hacer la solicitud con los headers definidos
-response = requests.get(f"https://api.sportsdata.io/v3/nfl/scores/json/GamesBySeason/2024", headers=headers)
-
-if response.status_code == 200:
-    print("Datos obtenidos correctamente.")
-    # Procesar la respuesta aquí
-else:
-    print(f"Error al obtener los partidos: {response.status_code}")
-
-response = requests.get(f"https://api.sportsdata.io/v3/nfl/scores/json/GamesBySeason/2024", headers=headers)
-if response.status_code == 404:
-    logging.error(f"Endpoint no encontrado para la temporada {season}. Revisa la URL y los parámetros.")
-elif response.status_code != 200:
-    logging.error(f"Error en la API: {response.status_code} - {response.text}")
-
-
+# Configurar y ejecutar el bot de Telegram
 if __name__ == '__main__':
     application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 
@@ -172,5 +152,5 @@ if __name__ == '__main__':
         url_path="/webhook",
         webhook_url=WEBHOOK_URL
     )
-    
+
     logging.info("BOT FUNCIONANDO")
