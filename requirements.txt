@@ -1,6 +1,8 @@
-python-telegram-bot[webhooks]
-Flask>=2.3.3
-datetime
+requests
+matplotlib
 python-telegram-bot==20.0
-fpdf
-qrcode
+Flask>=2.3.3
+python-telegram-bot[webhooks]
+pytz
+datetime
+numpy
