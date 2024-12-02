@@ -136,6 +136,18 @@ async def predict(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text("❌ Partido no encontrado.")
 
+# Definir los headers para la solicitud
+headers = {'Ocp-Apim-Subscription-Key': API_KEY}
+
+# Hacer la solicitud con los headers definidos
+response = requests.get(f"https://api.sportsdata.io/v3/nfl/scores/json/GamesBySeason/2024", headers=headers)
+
+if response.status_code == 200:
+    print("Datos obtenidos correctamente.")
+    # Procesar la respuesta aquí
+else:
+    print(f"Error al obtener los partidos: {response.status_code}")
+
 response = requests.get(f"https://api.sportsdata.io/v3/nfl/scores/json/GamesBySeason/2024", headers=headers)
 if response.status_code == 404:
     logging.error(f"Endpoint no encontrado para la temporada {season}. Revisa la URL y los parámetros.")
