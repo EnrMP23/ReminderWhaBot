@@ -23,7 +23,7 @@ TELEGRAM_TOKEN = os.getenv("BOT_TOKEN", "7163814190:AAGzhkR3H3SLBQc4LF4Zxi3J4_Rn
 WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://reminderwhabot-vsig.onrender.com/webhook")  # URL pública de tu webhook
 season = 2024
 
-BASE_URL = "https://api.sportsdata.io/v3/nfl/scores/json/GamesBySeason/2024"
+BASE_URL = "https://api.sportsdata.io/v3/nfl/scores/json/CurrentSeason?key=205bca4e7d76426ea69a738d9ef11641"
 STANDINGS_URL = "https://api.sportsdata.io/v3/nfl/scores/json/Standings/2024"
 TEAMS_URL = "https://api.sportsdata.io/v3/nfl/scores/json/Teams"
 
