@@ -6,3 +6,4 @@ python-telegram-bot[webhooks]
 pytz
 datetime
 numpy
+logging
