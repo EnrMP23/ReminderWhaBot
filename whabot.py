@@ -136,6 +136,13 @@ async def predict(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text("❌ Partido no encontrado.")
 
+response = requests.get(f"https://api.sportsdata.io/v3/nfl/scores/json/GamesBySeason/2024", headers=headers)
+if response.status_code == 404:
+    logging.error(f"Endpoint no encontrado para la temporada {season}. Revisa la URL y los parámetros.")
+elif response.status_code != 200:
+    logging.error(f"Error en la API: {response.status_code} - {response.text}")
+
+
 if __name__ == '__main__':
     application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 
