@@ -39,10 +39,13 @@ def get_nfl_matches_current_week():
     response = requests.get(url, headers=headers)
 
     if response.status_code == 200:
-        return response.json()  # Devuelve los partidos de la semana actual
+        return response.json()
+    elif response.status_code == 404:
+        logging.warning(f"No games found for season {season}, week {current_week}. Verifica los datos ingresados.")
     else:
-        logging.error(f"Error al obtener partidos para la semana {current_week}: {response.status_code}")
-        return []
+        logging.error(f"Error al obtener partidos. Status code: {response.status_code}, Response: {response.text}")
+    return []
+
 
 # Función para el comando /games
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
