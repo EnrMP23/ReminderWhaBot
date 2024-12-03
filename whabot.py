@@ -36,14 +36,21 @@ def get_nfl_matches_current_week():
     current_week = get_current_nfl_week()
     url = f"https://api.sportsdata.io/v3/nfl/scores/json/GamesByWeek/{season}/{current_week}"
     logging.info(f"Fetching games for season {season}, week {current_week} | URL: {url}")
+
     response = requests.get(url, headers=headers)
 
     if response.status_code == 200:
-        return response.json()
+        games = response.json()
+        if games:
+            logging.info(f"Partidos encontrados para la semana {current_week}: {len(games)}")
+            return games
+        else:
+            logging.warning(f"No se encontraron partidos para la temporada {season}, semana {current_week}.")
+            return []
     elif response.status_code == 404:
-        logging.warning(f"No games found for season {season}, week {current_week}. Verifica los datos ingresados.")
+        logging.warning(f"No se encontraron datos para la temporada {season}, semana {current_week}. Verifica la API.")
     else:
-        logging.error(f"Error al obtener partidos. Status code: {response.status_code}, Response: {response.text}")
+        logging.error(f"Error inesperado: {response.status_code} - {response.text}")
     return []
 
 
