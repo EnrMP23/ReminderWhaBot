@@ -29,7 +29,7 @@ def get_nfl_teams():
         response = requests.get(BASE_URL, headers=HEADERS)
         response.raise_for_status()  # Lanza una excepción si hay errores en la solicitud
         data = response.json()  # Procesa la respuesta JSON
-        return data if data else []
+        return data if isinstance(data, list) else []  # Devuelve una lista si la estructura es correcta
     except requests.exceptions.RequestException as e:
         logging.error(f"Error en la solicitud a NFL API: {e}")
         return []
@@ -42,7 +42,7 @@ async def teams(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if teams:
         message_text = "🏈 Lista de equipos de la NFL:\n\n"
-        for team in teams.get("teams", []):  # Asumiendo que los equipos están en un objeto llamado "teams"
+        for team in teams:  # La respuesta es una lista directamente
             team_name = team.get("name", "Nombre no disponible")
             city = team.get("city", "Ciudad no disponible")
             abbreviation = team.get("abbreviation", "Abreviación no disponible")
