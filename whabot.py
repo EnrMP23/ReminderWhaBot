@@ -11,9 +11,9 @@ logging.basicConfig(
 )
 
 # Variables de configuración
-API_KEY = os.getenv("RAPID_API_KEY", "tu_rapid_api_key")  # Cambia por tu RapidAPI Key
-TELEGRAM_TOKEN = os.getenv("BOT_TOKEN", "tu_telegram_token")  # Cambia por tu token del bot
-WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://tuservidor.com/webhook")  # Cambia por tu URL pública del webhook
+API_KEY = os.getenv("RAPID_API_KEY", "38aeea1ee1msh8469e000f73dd78p108836jsndc03864ae7bc")  # Cambia por tu RapidAPI Key
+TELEGRAM_TOKEN = os.getenv("BOT_TOKEN", "7163814190:AAGzhkR3H3SLBQc4LF4Zxi3J4_RnKd26u1M")  # Cambia por tu token del bot
+WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://reminderwhabot-vsig.onrender.com/webhook")  # Cambia por tu URL pública del webhook
 
 # Definir los headers para la solicitud
 headers = {
