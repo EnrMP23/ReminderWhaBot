@@ -16,61 +16,48 @@ TELEGRAM_TOKEN = os.getenv("BOT_TOKEN", "7163814190:AAGzhkR3H3SLBQc4LF4Zxi3J4_Rn
 WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://reminderwhabot-vsig.onrender.com/webhook")  # URL pública del webhook
 
 # Configuración del endpoint y headers
-BASE_URL = "https://sportapi7.p.rapidapi.com/api/v1/player/7635/unique-tournament/8/season/18020/heatmap"
+BASE_URL = "https://nfl-api-data.p.rapidapi.com/nfl-team-listing/v1/data"
 HEADERS = {
     "x-rapidapi-key": RAPIDAPI_KEY,
-    "x-rapidapi-host": "sportapi7.p.rapidapi.com"
+    "x-rapidapi-host": "nfl-api-data.p.rapidapi.com"
 }
 
-# Función para obtener el heatmap de un jugador
-def get_player_heatmap():
-    """Obtiene el heatmap de un jugador de la API."""
+# Función para obtener la lista de equipos de la NFL
+def get_nfl_teams():
+    """Obtiene la lista de equipos de la NFL desde la API."""
     try:
         response = requests.get(BASE_URL, headers=HEADERS)
         response.raise_for_status()  # Lanza una excepción si hay errores en la solicitud
         data = response.json()  # Procesa la respuesta JSON
-        return data if data else None
+        return data if data else []
     except requests.exceptions.RequestException as e:
-        logging.error(f"Error en la solicitud al API de jugadores: {e}")
-        return None
+        logging.error(f"Error en la solicitud a NFL API: {e}")
+        return []
 
-# Función para el comando /heatmap
-async def heatmap(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Muestra el heatmap del jugador especificado."""
-    await update.message.reply_text("🔍 Obteniendo información del heatmap del jugador...")
-    heatmap_data = get_player_heatmap()
+# Función para el comando /teams
+async def teams(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Muestra la lista de equipos de la NFL."""
+    await update.message.reply_text("🔍 Obteniendo la lista de equipos de la NFL...")
+    teams = get_nfl_teams()
 
-    if heatmap_data:
-        # Procesar los datos y mostrar información relevante
-        player_name = heatmap_data.get("player", {}).get("name", "Desconocido")
-        season = heatmap_data.get("season", {}).get("name", "Desconocida")
-        tournament = heatmap_data.get("unique_tournament", {}).get("name", "Desconocido")
-        positions = heatmap_data.get("heatmap", {}).get("positions", [])
-
-        message_text = f"🌟 Heatmap de {player_name}:\n\n"
-        message_text += f"🏆 Torneo: {tournament}\n"
-        message_text += f"📅 Temporada: {season}\n\n"
-
-        if positions:
-            message_text += "📍 Posiciones destacadas:\n"
-            for position in positions:
-                x = position.get("x", "N/A")
-                y = position.get("y", "N/A")
-                intensity = position.get("intensity", "N/A")
-                message_text += f"🔹 X: {x}, Y: {y}, Intensidad: {intensity}\n"
-        else:
-            message_text += "⚠️ No se encontraron datos de posiciones para el heatmap."
+    if teams:
+        message_text = "🏈 Lista de equipos de la NFL:\n\n"
+        for team in teams.get("teams", []):  # Asumiendo que los equipos están en un objeto llamado "teams"
+            team_name = team.get("name", "Nombre no disponible")
+            city = team.get("city", "Ciudad no disponible")
+            abbreviation = team.get("abbreviation", "Abreviación no disponible")
+            message_text += f"🔹 {team_name} ({abbreviation}) - {city}\n"
 
         await update.message.reply_text(message_text)
     else:
-        await update.message.reply_text("❌ No se pudo obtener el heatmap. Intenta más tarde.")
+        await update.message.reply_text("🥱 No se pudo obtener la lista de equipos. Intenta más tarde.")
 
 # Configurar y ejecutar el bot de Telegram
 if __name__ == '__main__':
     application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 
-    # Agregar manejador para el comando /heatmap
-    application.add_handler(CommandHandler("heatmap", heatmap))
+    # Agregar manejador para el comando /teams
+    application.add_handler(CommandHandler("teams", teams))
 
     # Configurar el webhook
     application.run_webhook(
