@@ -16,17 +16,18 @@ TELEGRAM_TOKEN = os.getenv("BOT_TOKEN", "7163814190:AAGzhkR3H3SLBQc4LF4Zxi3J4_Rn
 WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://reminderwhabot-vsig.onrender.com/webhook")  # URL pública del webhook
 
 # Configuración del endpoint y headers
-BASE_URL = "https://nfl-api-data.p.rapidapi.com/nfl-team-listing/v1/data"
+BASE_URL = "https://nfl-api-data.p.rapidapi.com/nfl-team-schedule"
 HEADERS = {
     "x-rapidapi-key": RAPIDAPI_KEY,
     "x-rapidapi-host": "nfl-api-data.p.rapidapi.com"
 }
 
-# Función para obtener la lista de equipos de la NFL
-def get_nfl_teams():
-    """Obtiene la lista de equipos de la NFL desde la API."""
+# Función para obtener el calendario de un equipo
+def get_team_schedule(team_id):
+    """Obtiene el calendario de un equipo de la NFL por su ID."""
     try:
-        response = requests.get(BASE_URL, headers=HEADERS)
+        querystring = {"id": str(team_id)}
+        response = requests.get(BASE_URL, headers=HEADERS, params=querystring)
         response.raise_for_status()  # Lanza una excepción si hay errores en la solicitud
         data = response.json()  # Procesa la respuesta JSON
         return data if isinstance(data, list) else []  # Devuelve una lista si la estructura es correcta
@@ -34,30 +35,35 @@ def get_nfl_teams():
         logging.error(f"Error en la solicitud a NFL API: {e}")
         return []
 
-# Función para el comando /teams
-async def teams(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Muestra la lista de equipos de la NFL."""
-    await update.message.reply_text("🔍 Obteniendo la lista de equipos de la NFL...")
-    teams = get_nfl_teams()
+# Función para el comando /schedule
+async def schedule(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Muestra el calendario de un equipo de la NFL."""
+    if len(context.args) < 1:
+        await update.message.reply_text("Por favor, proporciona un ID de equipo. Ejemplo: /schedule 22")
+        return
 
-    if teams:
-        message_text = "🏈 Lista de equipos de la NFL:\n\n"
-        for team in teams:  # La respuesta es una lista directamente
-            team_name = team.get("name", "Nombre no disponible")
-            city = team.get("city", "Ciudad no disponible")
-            abbreviation = team.get("abbreviation", "Abreviación no disponible")
-            message_text += f"🔹 {team_name} ({abbreviation}) - {city}\n"
+    team_id = context.args[0]
+    await update.message.reply_text(f"🔍 Obteniendo el calendario del equipo con ID {team_id}...")
+    schedule = get_team_schedule(team_id)
+
+    if schedule:
+        message_text = f"📅 Calendario del equipo con ID {team_id}:\n\n"
+        for game in schedule:
+            opponent = game.get("opponent", "Desconocido")
+            date = game.get("date", "Fecha no disponible")
+            home_or_away = "Casa" if game.get("is_home", False) else "Visita"
+            message_text += f"🔹 {date}: Contra {opponent} ({home_or_away})\n"
 
         await update.message.reply_text(message_text)
     else:
-        await update.message.reply_text("🥱 No se pudo obtener la lista de equipos. Intenta más tarde.")
+        await update.message.reply_text(f"🥱 No se encontró calendario para el equipo con ID {team_id}. Intenta más tarde.")
 
 # Configurar y ejecutar el bot de Telegram
 if __name__ == '__main__':
     application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 
-    # Agregar manejador para el comando /teams
-    application.add_handler(CommandHandler("teams", teams))
+    # Agregar manejador para el comando /schedule
+    application.add_handler(CommandHandler("schedule", schedule))
 
     # Configurar el webhook
     application.run_webhook(
