@@ -5,6 +5,8 @@ import instaloader
 from telegram import Update
 from telegram.ext import Application, CommandHandler, JobQueue, CallbackContext
 
+chat_id = 5602833071
+
 # Archivo para guardar perfiles a monitorear
 MONITOREO_FILE = "monitoreo.json"
 
