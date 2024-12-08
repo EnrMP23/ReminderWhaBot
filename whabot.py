@@ -6,6 +6,7 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, JobQueue, CallbackContext
 
 chat_id = 5602833071
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN", "7163814190:AAG7Ntm7GdlqpZFBcrTSgpjPVbLPTP-kkTo") 
 
 # Archivo para guardar perfiles a monitorear
 MONITOREO_FILE = "monitoreo.json"
@@ -106,7 +107,7 @@ async def monitoreo_automatico(context: CallbackContext):
 
 # Configuración del bot
 async def main():
-    token = os.getenv("7163814190:AAG7Ntm7GdlqpZFBcrTSgpjPVbLPTP-kkTo")
+    token = os.getenv("TELEGRAM_TOKEN")
     if not token:
         print("Error: No se encontró el token del bot en las variables de entorno.")
         return
