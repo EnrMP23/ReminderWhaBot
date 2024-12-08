@@ -42,13 +42,18 @@ def save_data(data):
 
 # Función de login en Instagram
 def login_instagram():
+    session_file = f".instaloader-session-{INSTAGRAM_USER}"
+
     try:
-        loader.load_session(INSTAGRAM_USER)  # Intentamos cargar la sesión guardada
+        # Intentamos cargar la sesión desde el archivo
+        loader.load_session_from_file(INSTAGRAM_USER)
+        logger.info("Sesión cargada con éxito desde archivo.")
     except FileNotFoundError:
+        # Si no existe el archivo de sesión, iniciar sesión manualmente
         logger.info("No se encontró sesión guardada, iniciando sesión con usuario y contraseña...")
-        loader.context.log("Cargando nueva sesión de Instagram...")
         loader.login(INSTAGRAM_USER, INSTAGRAM_PASS)  # Iniciar sesión con usuario y contraseña
-        loader.save_session(INSTAGRAM_USER)  # Guardar la sesión para futuras ejecuciones
+        loader.save_session(session_file)  # Guardar la sesión para futuras ejecuciones
+        logger.info(f"Sesión guardada correctamente en {session_file}")
 
 # Función para analizar los perfiles y sus seguidores
 async def analizar_perfil(perfil, chat_id, application) -> None:
@@ -133,7 +138,7 @@ def main() -> None:
 
     # Agregar trabajo programado para monitoreo automático (cada 1 hora)
     job_queue = application.job_queue
-    job_queue.run_repeating(monitoreo_automatico, interval=10, first=0)  # Ejecutar cada hora
+    job_queue.run_repeating(monitoreo_automatico, interval=3600, first=0)  # Ejecutar cada hora
 
     # Iniciar el bot con webhook
     application.run_webhook(
