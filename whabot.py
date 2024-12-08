@@ -44,13 +44,13 @@ def save_data(data):
 def login_instagram():
     try:
         # Intentar cargar la sesión guardada
-        loader.load_session(INSTAGRAM_USER)
+        loader.load_session_from_file(INSTAGRAM_USER)  # Cargar desde archivo
         logger.info("Sesión de Instagram cargada exitosamente.")
     except FileNotFoundError:
         # Si no existe la sesión guardada, hacer login
         logger.info("No se encontró sesión guardada, iniciando sesión con usuario y contraseña...")
         loader.login(INSTAGRAM_USER, INSTAGRAM_PASS)
-        loader.save_session(INSTAGRAM_USER)  # Guardar la sesión para futuras ejecuciones
+        loader.save_session_to_file()  # Guardar la sesión para futuras ejecuciones
         logger.info("Sesión de Instagram guardada exitosamente.")
 
 # Comando start
