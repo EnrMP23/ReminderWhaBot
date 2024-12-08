@@ -5,7 +5,6 @@ import instaloader
 from telegram import Update
 from telegram.ext import Application, CommandHandler, JobQueue
 
-
 # Archivo para guardar perfiles a monitorear
 MONITOREO_FILE = "monitoreo.json"
 
@@ -59,11 +58,11 @@ async def listar(update: Update, context):
         perfiles = "\n".join(monitoreo.keys())  # Obtener los nombres de los perfiles monitoreados
         await update.message.reply_text(f"Perfiles monitoreados:\n{perfiles}")
 
-# Analizar cambios en un perfil
+# Función para analizar cambios en un perfil de Instagram
 async def analizar_perfil(perfil, chat_id, updater):
     data_file = f"{perfil}_seguimientos.json"
     try:
-        # Iniciar sesión en Instagram
+        # Iniciar sesión en Instagram (agrega tus credenciales aquí)
         loader.login("@enriquemaynez", "EnriqueMP2002")  # Aquí debes poner tus credenciales de Instagram
 
         # Obtener el perfil de Instagram
@@ -88,7 +87,7 @@ async def analizar_perfil(perfil, chat_id, updater):
         if new_followees or removed_followees:
             await updater.bot.send_message(chat_id=chat_id, text=message)
 
-        # Guardar la lista actual
+        # Guardar la lista actual de seguidos
         monitoreo = load_data()
         monitoreo[perfil] = current_followees
         save_data(monitoreo)
@@ -97,7 +96,7 @@ async def analizar_perfil(perfil, chat_id, updater):
 
 # Monitoreo automático
 async def monitoreo_automatico(context):
-    monitoreo = load_data()
+    monitoreo = load_data()  # Cargar perfiles monitoreados
     for perfil in monitoreo.keys():
         await analizar_perfil(perfil, context.job.context['chat_id'], context.application)
 
@@ -106,20 +105,27 @@ async def main():
     token = "7163814190:AAG7Ntm7GdlqpZFBcrTSgpjPVbLPTP-kkTo"  # Reemplaza esto con tu token real del bot
     application = Application.builder().token(token).build()
 
+    # Configura JobQueue
+    job_queue = application.job_queue
+
     # Maneja comandos
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("monitorear", monitorear))
     application.add_handler(CommandHandler("listar", listar))
-
-    # Agregar monitoreo periódico
-    job_queue = application.job_queue
-    job_queue.run_repeating(monitoreo_automatico, interval=3600, first=10, context={"chat_id": "5602833071"})
 
     # URL del webhook
     webhook_url = "https://reminderwhabot-vsig.onrender.com/webhook"  # Reemplaza esto con la URL de tu app en Render
 
     # Configura el webhook
     await application.bot.set_webhook(webhook_url)
+
+    # Agregar monitoreo periódico usando JobQueue
+    job_queue.run_repeating(
+        monitoreo_automatico,
+        interval=3600,  # Ejecutar cada 1 hora
+        first=10,  # Esperar 10 segundos antes de la primera ejecución
+        context={"chat_id": "5602833071"}  # El contexto ahora se pasa aquí como un diccionario
+    )
 
     # Ejecuta el bot usando webhook
     await application.run_webhook(
