@@ -123,6 +123,19 @@ async def monitoreo_automatico(context: ContextTypes.DEFAULT_TYPE) -> None:
         except Exception as e:
             await context.bot.send_message(chat_id=chat_id, text=f"Error monitoreando {perfil}: {e}")
 
+async def actualizar(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    monitoreo = load_data()
+    chat_id = update.message.chat_id  # Obtener el chat ID del usuario
+
+    if not monitoreo:
+        await update.message.reply_text("No hay perfiles en monitoreo.")
+    else:
+        # Revisa los cambios en los seguidores de cada perfil
+        for perfil in monitoreo.keys():
+            await analizar_perfil(perfil, chat_id, context.application)
+        await update.message.reply_text("Se han revisado los cambios en los perfiles monitoreados.")
+
+
 # Configuración principal
 def main() -> None:
     login_instagram()  # Inicia sesión en Instagram al arrancar
@@ -133,6 +146,7 @@ def main() -> None:
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("monitorear", monitorear))
     application.add_handler(CommandHandler("listar", listar))
+    application.add_handler(CommandHandler("actualizar", actualizar))
 
     # Configuración de webhook
     application.run_webhook(
