@@ -54,7 +54,7 @@ def login_instagram():
         logger.info("Sesión de Instagram guardada exitosamente.")
 
 # Comando start
-async def start(update: Update, context: CallbackContext) -> None:
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     chat_id = update.message.chat_id  # Obtener el chat ID del usuario
     logger.info(f"Comando /start recibido de chat ID {chat_id}")
     await update.message.reply_text(
