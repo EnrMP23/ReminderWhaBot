@@ -1,14 +1,14 @@
 import os
 import json
-import asyncio
 import instaloader
 from telegram import Update
-from telegram.ext import Application, CommandHandler, JobQueue, CallbackContext
+from telegram.ext import Application, ApplicationBuilder, CommandHandler, CallbackContext
 
 # Configuración inicial
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN", "7163814190:AAGJGgmpBcfbhrWG_87Sr87oOT0aTdYA5kI") 
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN", "7163814190:AAGJGgmpBcfbhrWG_87Sr87oOT0aTdYA5kI")
+WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://reminderwhabot-vsig.onrender.com/webhook")
 MONITOREO_FILE = "monitoreo.json"
-chat_id = 5602833071  # ID de chat de Telegram para recibir notificaciones
+CHAT_ID = 5602833071  # ID de chat de Telegram para recibir notificaciones
 
 # Inicializa Instaloader
 loader = instaloader.Instaloader()
@@ -36,8 +36,7 @@ async def start(update: Update, context: CallbackContext):
         "¡Hola! Soy un bot para monitorear los seguidos de perfiles en Instagram.\n"
         "Comandos disponibles:\n"
         "- /monitorear <perfil>: Agrega un perfil para monitorear.\n"
-        "- /analizar <perfil>: Analiza manualmente un perfil.\n"
-        "- /listar: Muestra los perfiles monitoreados."
+        "- /listar: Muestra los perfiles monitoreados.\n"
     )
 
 # Comando /monitorear
@@ -68,12 +67,10 @@ async def listar(update: Update, context: CallbackContext):
         perfiles = "\n".join(monitoreo.keys())
         await update.message.reply_text(f"Perfiles monitoreados:\n{perfiles}")
 
-# Función para analizar cambios en un perfil de Instagram
-async def analizar_perfil(perfil, chat_id, updater):
-    """Analiza los seguidos actuales de un perfil de Instagram y envía notificaciones."""
+# Análisis del perfil
+async def analizar_perfil(perfil, chat_id, bot):
+    """Analiza los cambios en los seguidos de un perfil de Instagram."""
     try:
-        loader.login(os.getenv("INSTA_USER"), os.getenv("INSTA_PASSWORD"))
-
         profile = instaloader.Profile.from_username(loader.context, perfil)
         current_followees = [followee.username for followee in profile.get_followees()]
 
@@ -88,33 +85,29 @@ async def analizar_perfil(perfil, chat_id, updater):
                 message += "📈 Nuevos seguidos:\n" + "\n".join(f"- {u}" for u in new_followees) + "\n\n"
             if removed_followees:
                 message += "📉 Seguidos eliminados:\n" + "\n".join(f"- {u}" for u in removed_followees) + "\n\n"
-            await updater.bot.send_message(chat_id=chat_id, text=message)
+            await bot.send_message(chat_id=chat_id, text=message)
 
         monitoreo = load_data()
         monitoreo[perfil] = current_followees
         save_data(monitoreo)
     except instaloader.exceptions.ProfileNotExistsException:
-        await updater.bot.send_message(chat_id=chat_id, text=f"El perfil {perfil} no existe.")
+        await bot.send_message(chat_id=chat_id, text=f"El perfil {perfil} no existe.")
     except instaloader.exceptions.LoginRequiredException:
-        await updater.bot.send_message(chat_id=chat_id, text=f"No se pudo acceder al perfil {perfil}. Verifica las credenciales.")
+        await bot.send_message(chat_id=chat_id, text=f"No se pudo acceder al perfil {perfil}. Verifica las credenciales.")
     except Exception as e:
-        await updater.bot.send_message(chat_id=chat_id, text=f"Error analizando {perfil}: {e}")
+        await bot.send_message(chat_id=chat_id, text=f"Error analizando {perfil}: {e}")
 
 # Monitoreo automático
 async def monitoreo_automatico(context: CallbackContext):
     """Monitorea automáticamente los perfiles a intervalos regulares."""
-    chat_id = context.job.context['chat_id']
     monitoreo = load_data()
     for perfil in monitoreo.keys():
-        try:
-            await analizar_perfil(perfil, chat_id, context.application)
-        except Exception as e:
-            await context.bot.send_message(chat_id=chat_id, text=f"Error monitoreando {perfil}: {e}")
+        await analizar_perfil(perfil, CHAT_ID, context.bot)
 
 # Configuración del bot
 async def main():
-    """Configuración principal del bot y ejecución del webhook."""
-    application = Application.builder().token(TELEGRAM_TOKEN).build()
+    """Configuración principal del bot y ejecución."""
+    application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 
     # Configura JobQueue
     job_queue = application.job_queue
@@ -124,25 +117,25 @@ async def main():
     application.add_handler(CommandHandler("monitorear", monitorear))
     application.add_handler(CommandHandler("listar", listar))
 
-    # Configura el webhook
-    await application.run_webhook(
-        listen="0.0.0.0",
-        port=8443,
-        url_path="/webhook",
-        webhook_url=os.getenv("WEBHOOK_URL")
-    )
-
     # Agregar monitoreo periódico usando JobQueue
     job_queue.run_repeating(
         monitoreo_automatico,
         interval=3600,  # Ejecutar cada 1 hora
         first=10,  # Esperar 10 segundos antes de la primera ejecución
-        context={"chat_id": chat_id},  # Se pasa el context de manera correcta
     )
+
+    # Ejecutar la aplicación
+    await application.run_polling()
 
 # Ejecutar el bot
 if __name__ == '__main__':
+    import asyncio
+
     try:
-        asyncio.run(main())
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            loop.create_task(main())
+        else:
+            asyncio.run(main())
     except Exception as e:
         print(f"Error al ejecutar el bot: {e}")
