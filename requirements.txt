@@ -3,3 +3,6 @@ python-telegram-bot==20.1
 schedule==1.1.0
 instaloader==4.10.3
 python-telegram-bot[job-queue]
+import asyncio
+Flask>=2.3.3
+python-telegram-bot[webhooks]
