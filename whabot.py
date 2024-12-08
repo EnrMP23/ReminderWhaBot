@@ -4,7 +4,9 @@ import asyncio
 import instaloader
 from telegram import Update
 from telegram.ext import Application, CommandHandler
-from telegram.ext import Dispatcher
+
+application = Application.builder().token(token).build()
+
 
 # Archivo para guardar perfiles a monitorear
 MONITOREO_FILE = "monitoreo.json"
