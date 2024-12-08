@@ -7,7 +7,7 @@ import logging
 import asyncio
 
 # Configuración básica
-TELEGRAM_TOKEN = os.getenv("7163814190:AAGJGgmpBcfbhrWG_87Sr87oOT0aTdYA5kI")
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN", "7163814190:AAGJGgmpBcfbhrWG_87Sr87oOT0aTdYA5kI")
 WEBHOOK_URL = os.getenv("https://reminderwhabot-vsig.onrender.com/webhook")
 MONITOREO_FILE = "monitoreo.json"
 chat_id = os.getenv("CHAT_ID", "5602833071")  # Mejor no hardcodear el chat_id
