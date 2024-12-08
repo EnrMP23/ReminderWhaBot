@@ -39,19 +39,19 @@ def save_data(data):
 # Función de inicio de sesión en Instagram
 def login_instagram():
     try:
-        # Intentamos cargar la sesión guardada desde un archivo
-        session_file = f".instaloader-session-{INSTAGRAM_USER}"
-        loader.load_session_from_file(INSTAGRAM_USER, filename=session_file)
-    except FileNotFoundError:
-        logger.info("Sesión no encontrada, intentando iniciar sesión...")
-        try:
-            loader.login(INSTAGRAM_USER, INSTAGRAM_PASS)  # Intentamos iniciar sesión
-            loader.save_session_to_file(session_file)  # Guardamos la sesión en un archivo
-            logger.info("Inicio de sesión exitoso y sesión guardada.")
-        except Exception as e:
-            logger.error(f"Error en el inicio de sesión: {e}")
-            raise
-
+        if not os.path.exists(f"/tmp/.instaloader-render/session-{INSTAGRAM_USER}"):
+            print("No se encontró sesión guardada, iniciando sesión con usuario y contraseña...")
+            loader.context.log("Iniciando sesión en Instagram...")
+            loader.login(INSTAGRAM_USER, INSTAGRAM_PASS)  # Debes pasar tus credenciales aquí
+            loader.save_session_to_file(f'/tmp/.instaloader-render/session-{INSTAGRAM_USER}')  # Guarda la sesión
+        else:
+            print("Cargando sesión guardada...")
+            loader.load_session_from_file(f"/tmp/.instaloader-render/session-{INSTAGRAM_USER}")
+    except instaloader.exceptions.ConnectionException as e:
+        print(f"Error de conexión: {e}. Intentando de nuevo...")
+        time.sleep(60)  # Esperar 60 segundos antes de intentar nuevamente
+        login_instagram()  
+        
 # Comando /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     chat_id = update.message.chat_id  # Obtener el chat ID del usuario
