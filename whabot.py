@@ -107,7 +107,7 @@ async def monitoreo_automatico(context: CallbackContext):
 
 # Configuración del bot
 async def main():
-    token = "TELEGRAM_TOKEN"  # Reemplaza esto con tu token real del bot
+    token = "7163814190:AAG7Ntm7GdlqpZFBcrTSgpjPVbLPTP-kkTo"  # Reemplaza esto con tu token real del bot
     application = Application.builder().token(token).build()
 
     # Configura JobQueue
