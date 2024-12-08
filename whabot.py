@@ -124,7 +124,7 @@ def main() -> None:
 
     # Configuración del trabajo periódico
     job_queue = application.job_queue
-    job_queue.run_repeating(monitoreo_automatico, interval=10, first=0, context=123456789)  # 123456789 es el chat_id de ejemplo
+    job_queue.run_repeating(monitoreo_automatico, interval=10, first=0, context=5602833071)  # 123456789 es el chat_id de ejemplo
 
     # Configuración de webhook
     application.run_webhook(
