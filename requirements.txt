@@ -4,4 +4,4 @@ python-telegram-bot[job_queue]==20.0
 python-telegram-bot[webhooks]
 instaloader==4.9.3
 schedule==1.1.0
-
+aiohttp==3.8.1
