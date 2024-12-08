@@ -37,16 +37,19 @@ def load_data():
 
 # Función para iniciar sesión en Instagram
 def login_instagram():
+    # Intentamos cargar la sesión guardada
     try:
-        # Intenta cargar la sesión guardada
-        loader.load_session(INSTAGRAM_USER)
-        logger.info("Sesión de Instagram cargada correctamente.")
+        print("Cargando sesión guardada...")
+        loader.load_session_from_file(INSTAGRAM_USER)  # Cargar sesión desde archivo
+        print("Sesión cargada correctamente.")
     except FileNotFoundError:
-        logger.info("No se encontró sesión guardada, iniciando sesión con usuario y contraseña...")
-        loader.context.log("Iniciando sesión...")
-        loader.login(INSTAGRAM_USER, INSTAGRAM_PASS)  # Inicia sesión con usuario y contraseña
-        loader.save_session(INSTAGRAM_USER)  # Guarda la sesión para futuras ejecuciones
-        logger.info("Sesión guardada correctamente.")
+        print("No se encontró sesión guardada, iniciando sesión con usuario y contraseña...")
+        loader.login(INSTAGRAM_USER, INSTAGRAM_PASS)  # Iniciar sesión si no hay sesión guardada
+        loader.save_session(SESSION_FILE)  # Guardar la sesión para futuras ejecuciones
+        print("Sesión guardada correctamente.")
+
+# Llamamos a la función de login al inicio del script
+login_instagram()
 
 # Comando para monitorear un perfil
 async def monitorear(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
