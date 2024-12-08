@@ -43,13 +43,15 @@ def save_data(data):
 # Iniciar sesión en Instagram
 def login_instagram():
     try:
-        # Intentar cargar la sesión
+        # Intentar cargar la sesión guardada
         loader.load_session(INSTAGRAM_USER)
+        logger.info("Sesión de Instagram cargada exitosamente.")
     except FileNotFoundError:
-        # Si la sesión no existe, iniciar sesión con usuario y contraseña
-        loader.context.log("No session found, logging in...")
+        # Si no existe la sesión guardada, hacer login
+        logger.info("No se encontró sesión guardada, iniciando sesión con usuario y contraseña...")
         loader.login(INSTAGRAM_USER, INSTAGRAM_PASS)
-        loader.save_session(INSTAGRAM_USER)
+        loader.save_session(INSTAGRAM_USER)  # Guardar la sesión para futuras ejecuciones
+        logger.info("Sesión de Instagram guardada exitosamente.")
 
 # Comando start
 async def start(update: Update, context: CallbackContext) -> None:
