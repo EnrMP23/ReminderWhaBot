@@ -39,13 +39,14 @@ def save_data(data):
 # Función de inicio de sesión en Instagram
 def login_instagram():
     try:
-        # Intentamos cargar la sesión guardada
-        loader.load_session(INSTAGRAM_USER)
+        # Intentamos cargar la sesión guardada desde un archivo
+        session_file = f".instaloader-session-{INSTAGRAM_USER}"
+        loader.load_session_from_file(INSTAGRAM_USER, filename=session_file)
     except FileNotFoundError:
         logger.info("Sesión no encontrada, intentando iniciar sesión...")
         try:
             loader.login(INSTAGRAM_USER, INSTAGRAM_PASS)  # Intentamos iniciar sesión
-            loader.save_session(INSTAGRAM_USER)  # Guardamos la sesión
+            loader.save_session_to_file(session_file)  # Guardamos la sesión en un archivo
             logger.info("Inicio de sesión exitoso y sesión guardada.")
         except Exception as e:
             logger.error(f"Error en el inicio de sesión: {e}")
