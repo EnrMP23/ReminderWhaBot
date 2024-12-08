@@ -10,11 +10,11 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Credenciales de Instagram
-INSTAGRAM_USER = "@enriquemaynez"
-INSTAGRAM_PASS = "EnriqueMP2002"
+INSTAGRAM_USER = "@xxxxx"
+INSTAGRAM_PASS = "xxx"
 
 # Configuración del bot de Telegram
-TELEGRAM_TOKEN = "7680282118:AAHAu9QhhahvyRCflOt3u2rNhlcH88e5hoM"
+TELEGRAM_TOKEN = "7680282118:xxx"
 WEBHOOK_URL = "https://reminderwhabot-vsig.onrender.com/webhook"
 
 # Archivo donde se almacenan los datos de los perfiles monitoreados
