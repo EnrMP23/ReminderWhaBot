@@ -106,39 +106,32 @@ async def monitoreo_automatico(context: CallbackContext):
 
 # Configuración principal del bot
 async def main():
-    """Configuración del bot y ejecución."""
+    # Configurar la aplicación
     application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 
-    # Configura JobQueue
-    job_queue = application.job_queue
-
-    # Maneja comandos
+    # Manejar comandos
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("monitorear", monitorear))
     application.add_handler(CommandHandler("listar", listar))
 
-    # Agregar monitoreo periódico usando JobQueue
+    # Configuración del Webhook
+    port = int(os.getenv("PORT", "8443"))
+    await application.bot.set_webhook(url=WEBHOOK_URL)
+
+    # Configurar monitoreo automático
+    job_queue = application.job_queue
     job_queue.run_repeating(
         monitoreo_automatico,
-        interval=3600,  # Ejecutar cada 1 hora
-        first=10,  # Esperar 10 segundos antes de la primera ejecución
+        interval=3600,  # Cada hora
+        first=10  # Primer monitoreo en 10 segundos
     )
 
-    # Ejecutar la aplicación
-    await application.start()
-    print("Bot iniciado correctamente.")
-    await application.updater.wait_for_stop()
+    # Ejecutar aplicación en Webhook
+    application.run_webhook(
+        listen="0.0.0.0",
+        port=port,
+        url_path=TELEGRAM_TOKEN
+    )
 
-if __name__ == '__main__':
-    import asyncio
-
-    try:
-        asyncio.run(main())
-    except RuntimeError as e:
-        if str(e) == "Cannot close a running event loop":
-            print("El event loop ya estaba corriendo. Ejecutando el bot directamente.")
-            from threading import Thread
-            loop = asyncio.get_event_loop()
-            t = Thread(target=loop.run_forever)
-            t.start()
-            asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())
