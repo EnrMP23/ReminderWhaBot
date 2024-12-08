@@ -1,95 +1,68 @@
-import os
-import json
+import logging
 import instaloader
 from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, CallbackContext
-from telegram.ext import ContextTypes
-import logging
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+import json
+import os
 
-# Configuración
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN", "7680282118:AAHAu9QhhahvyRCflOt3u2rNhlcH88e5hoM")
-WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://reminderwhabot-vsig.onrender.com/webhook")
-PORT = int(os.getenv("PORT", "8443"))
-MONITOREO_FILE = "monitoreo.json"
-
-# Datos de Instagram
-INSTAGRAM_USER = '@enriquemaynez'
-INSTAGRAM_PASS = 'EnriqueMP2002'
-SESSION_FILE = '/tmp/.instaloader-render/session-{}'.format(INSTAGRAM_USER)
-
-# Configuración de logging
+# Configuración del logger
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
-# Instaloader para interacción con Instagram
+# Credenciales de Instagram
+INSTAGRAM_USER = "@enriquemaynez"
+INSTAGRAM_PASS = "EnriqueMP2002"
+
+# Configuración del bot de Telegram
+TELEGRAM_TOKEN = "7680282118:AAHAu9QhhahvyRCflOt3u2rNhlcH88e5hoM"
+WEBHOOK_URL = "https://reminderwhabot-vsig.onrender.com/webhook"
+
+# Archivo donde se almacenan los datos de los perfiles monitoreados
+DATA_FILE = "monitoreo_data.json"
+
+# Instaloader para interactuar con Instagram
 loader = instaloader.Instaloader()
 
-# Funciones para cargar y guardar datos
+# Función para guardar los datos en un archivo JSON
+def save_data(data):
+    with open(DATA_FILE, 'w') as f:
+        json.dump(data, f)
+
+# Función para cargar los datos desde el archivo JSON
 def load_data():
-    try:
-        if os.path.exists(MONITOREO_FILE):
-            with open(MONITOREO_FILE, "r") as file:
-                return json.load(file)
-    except json.JSONDecodeError:
-        return {}
+    if os.path.exists(DATA_FILE):
+        with open(DATA_FILE, 'r') as f:
+            return json.load(f)
     return {}
 
-def save_data(data):
-    with open(MONITOREO_FILE, "w") as file:
-        json.dump(data, file, indent=4)
-
-# Iniciar sesión en Instagram
+# Función para iniciar sesión en Instagram
 def login_instagram():
     try:
-        # Intentar cargar la sesión desde un archivo
-        loader.load_session_from_file(INSTAGRAM_USER)  # Cargar desde archivo de sesión
-        
+        # Intenta cargar la sesión guardada
+        loader.load_session(INSTAGRAM_USER)
+        logger.info("Sesión de Instagram cargada correctamente.")
     except FileNotFoundError:
-        # Si no se encuentra la sesión, iniciar sesión con usuario y contraseña
         logger.info("No se encontró sesión guardada, iniciando sesión con usuario y contraseña...")
-        loader.login(INSTAGRAM_USER, INSTAGRAM_PASS)  # Iniciar sesión
-        loader.save_session()  # Guardar la sesión para futuras ejecuciones
+        loader.context.log("Iniciando sesión...")
+        loader.login(INSTAGRAM_USER, INSTAGRAM_PASS)  # Inicia sesión con usuario y contraseña
+        loader.save_session(INSTAGRAM_USER)  # Guarda la sesión para futuras ejecuciones
+        logger.info("Sesión guardada correctamente.")
 
-    logger.info(f"Sesión cargada con éxito para {INSTAGRAM_USER}")
+# Comando para monitorear un perfil
+async def monitorear(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if context.args:
+        perfil = context.args[0]  # Obtener el nombre del perfil desde el comando
+        chat_id = update.message.chat_id  # Obtener el chat_id del usuario
 
-# Comando /start
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    chat_id = update.message.chat_id  # Obtener el chat ID del usuario
-    logger.info(f"Comando /start recibido de chat ID {chat_id}")
-    await update.message.reply_text(
-        f"¡Hola! Soy un bot para monitorear los seguidos de perfiles en Instagram.\n"
-        f"Tu chat ID es: {chat_id}\n"
-        "Comandos disponibles:\n"
-        "- /monitorear <perfil>: Agrega un perfil para monitorear.\n"
-        "- /listar: Muestra los perfiles monitoreados."
-    )
+        # Enviar mensaje de confirmación
+        await update.message.reply_text(f"Monitoreando el perfil de Instagram: {perfil}")
 
-# Comando /monitorear
-async def monitorear(update: Update, context: CallbackContext) -> None:
-    if len(context.args) != 1:
-        await update.message.reply_text("Por favor, proporciona un nombre de perfil. Ejemplo: /monitorear instagram")
-        return
-
-    perfil = context.args[0]
-    monitoreo = load_data()
-
-    if perfil in monitoreo:
-        await update.message.reply_text(f"El perfil {perfil} ya está siendo monitoreado.")
+        # Llamar a la función para analizar ese perfil
+        await analizar_perfil(perfil, chat_id, context.application)
     else:
-        monitoreo[perfil] = []
-        save_data(monitoreo)
-        await update.message.reply_text(f"El perfil {perfil} ha sido agregado al monitoreo.")
+        await update.message.reply_text("Por favor, ingresa el nombre del perfil a monitorear después del comando.\nEjemplo: /monitorear johndoe")
 
-# Comando /listar
-async def listar(update: Update, context: CallbackContext) -> None:
-    monitoreo = load_data()
-    if not monitoreo:
-        await update.message.reply_text("No hay perfiles en monitoreo.")
-    else:
-        perfiles = "\n".join(monitoreo.keys())
-        await update.message.reply_text(f"Perfiles monitoreados:\n{perfiles}")
-
-# Lógica del monitoreo
+# Función para analizar los seguidores de un perfil
 async def analizar_perfil(perfil, chat_id, application) -> None:
     try:
         profile = instaloader.Profile.from_username(loader.context, perfil)
@@ -107,45 +80,30 @@ async def analizar_perfil(perfil, chat_id, application) -> None:
                 message += "📉 Seguidos eliminados:\n" + "\n".join(f"- {u}" for u in removed_followees) + "\n\n"
             await application.bot.send_message(chat_id=chat_id, text=message)
 
+        # Guardar la lista actualizada de seguidos
         monitoreo = load_data()
         monitoreo[perfil] = current_followees
         save_data(monitoreo)
     except Exception as e:
-        await application.bot.send_message(chat_id=chat_id, text=f"Error analizando {perfil}: {e}")
+        await application.bot.send_message(chat_id=chat_id, text=f"Error al analizar {perfil}: {e}")
 
-# Configuración del monitoreo automático
-async def monitoreo_automatico(context: CallbackContext) -> None:
-    chat_id = context.job.context
-    monitoreo = load_data()
-    for perfil in monitoreo.keys():
-        try:
-            await analizar_perfil(perfil, chat_id, context.application)
-        except Exception as e:
-            await context.bot.send_message(chat_id=chat_id, text=f"Error monitoreando {perfil}: {e}")
+# Función principal que arranca el bot
+def main():
+    login_instagram()  # Inicia sesión en Instagram al arrancar
 
-# Configuración principal
-def main() -> None:
+    # Crea la aplicación de Telegram
     application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 
-    # Iniciar sesión en Instagram
-    login_instagram()
-
-    # Configuración de comandos
-    application.add_handler(CommandHandler("start", start))
+    # Agrega los manejadores de comandos
     application.add_handler(CommandHandler("monitorear", monitorear))
-    application.add_handler(CommandHandler("listar", listar))
 
-    # Configuración de tareas automáticas
-    job_queue = application.job_queue
-    job_queue.run_repeating(monitoreo_automatico, interval=10, first=10)  # Revisar cada 10 segundos
-
-    # Configuración de webhook
+    # Inicia el webhook del bot
     application.run_webhook(
         listen="0.0.0.0",
-        port=PORT,
+        port=8443,
         url_path="/webhook",
         webhook_url=WEBHOOK_URL
     )
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
