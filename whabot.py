@@ -13,9 +13,12 @@ loader = instaloader.Instaloader()
 
 # Funciones de ayuda para manejar datos
 def load_data():
-    if os.path.exists(MONITOREO_FILE):
-        with open(MONITOREO_FILE, 'r') as file:
-            return json.load(file)
+    try:
+        if os.path.exists(MONITOREO_FILE):
+            with open(MONITOREO_FILE, 'r') as file:
+                return json.load(file)
+    except json.JSONDecodeError:
+        return {}
     return {}
 
 def save_data(data):
@@ -39,71 +42,73 @@ async def monitorear(update: Update, context: CallbackContext):
         return
 
     perfil = context.args[0]
-    monitoreo = load_data()  # Cargar datos de los perfiles monitoreados
+    monitoreo = load_data()
 
     if perfil in monitoreo:
         await update.message.reply_text(f"El perfil {perfil} ya está siendo monitoreado.")
     else:
         monitoreo[perfil] = []  # Agregar el perfil al monitoreo con una lista vacía de seguidos
-        save_data(monitoreo)  # Guardar los cambios en el archivo JSON
+        save_data(monitoreo)
         await update.message.reply_text(f"El perfil {perfil} ha sido agregado al monitoreo.")
 
 # Comando /listar
 async def listar(update: Update, context: CallbackContext):
-    monitoreo = load_data()  # Cargar datos de los perfiles monitoreados
+    monitoreo = load_data()
 
     if not monitoreo:
         await update.message.reply_text("No hay perfiles en monitoreo.")
     else:
-        perfiles = "\n".join(monitoreo.keys())  # Obtener los nombres de los perfiles monitoreados
+        perfiles = "\n".join(monitoreo.keys())
         await update.message.reply_text(f"Perfiles monitoreados:\n{perfiles}")
 
 # Función para analizar cambios en un perfil de Instagram
 async def analizar_perfil(perfil, chat_id, updater):
-    data_file = f"{perfil}_seguimientos.json"
     try:
-        # Iniciar sesión en Instagram (agrega tus credenciales aquí)
-        loader.login("@enriquemaynez", "EnriqueMP2002")  # Aquí debes poner tus credenciales de Instagram
+        loader.login(os.getenv("@enriquemaynez"), os.getenv("EnriqueMP2002"))
 
-        # Obtener el perfil de Instagram
         profile = instaloader.Profile.from_username(loader.context, perfil)
         current_followees = [followee.username for followee in profile.get_followees()]
 
-        # Cargar los seguidos previos
         previous_followees = load_data().get(perfil, [])
 
-        # Detectar cambios
         new_followees = set(current_followees) - set(previous_followees)
         removed_followees = set(previous_followees) - set(current_followees)
 
-        # Construir mensaje
-        message = f"📊 Actualización para {perfil}:\n"
-        if new_followees:
-            message += "📈 Nuevos seguidos:\n" + "\n".join(f"- {u}" for u in new_followees) + "\n\n"
-        if removed_followees:
-            message += "📉 Seguidos eliminados:\n" + "\n".join(f"- {u}" for u in removed_followees) + "\n\n"
-
-        # Enviar mensaje si hay cambios
         if new_followees or removed_followees:
+            message = f"📊 Actualización para {perfil}:\n"
+            if new_followees:
+                message += "📈 Nuevos seguidos:\n" + "\n".join(f"- {u}" for u in new_followees) + "\n\n"
+            if removed_followees:
+                message += "📉 Seguidos eliminados:\n" + "\n".join(f"- {u}" for u in removed_followees) + "\n\n"
             await updater.bot.send_message(chat_id=chat_id, text=message)
 
-        # Guardar la lista actual de seguidos
         monitoreo = load_data()
         monitoreo[perfil] = current_followees
         save_data(monitoreo)
+    except instaloader.exceptions.ProfileNotExistsException:
+        await updater.bot.send_message(chat_id=chat_id, text=f"El perfil {perfil} no existe.")
+    except instaloader.exceptions.LoginRequiredException:
+        await updater.bot.send_message(chat_id=chat_id, text=f"No se pudo acceder al perfil {perfil}. Verifica las credenciales.")
     except Exception as e:
-        await updater.bot.send_message(chat_id=chat_id, text=f"Hubo un error al analizar {perfil}: {e}")
+        await updater.bot.send_message(chat_id=chat_id, text=f"Error analizando {perfil}: {e}")
 
 # Monitoreo automático
 async def monitoreo_automatico(context: CallbackContext):
-    chat_id = context.job.context['chat_id']  # Obtener el chat_id desde el contexto
-    monitoreo = load_data()  # Cargar perfiles monitoreados
+    chat_id = context.job.context['chat_id']
+    monitoreo = load_data()
     for perfil in monitoreo.keys():
-        await analizar_perfil(perfil, chat_id, context.application)
+        try:
+            await analizar_perfil(perfil, chat_id, context.application)
+        except Exception as e:
+            await context.bot.send_message(chat_id=chat_id, text=f"Error monitoreando {perfil}: {e}")
 
 # Configuración del bot
 async def main():
-    token = "7163814190:AAG7Ntm7GdlqpZFBcrTSgpjPVbLPTP-kkTo"  # Reemplaza esto con tu token real del bot
+    token = os.getenv("7163814190:AAG7Ntm7GdlqpZFBcrTSgpjPVbLPTP-kkTo")
+    if not token:
+        print("Error: No se encontró el token del bot en las variables de entorno.")
+        return
+
     application = Application.builder().token(token).build()
 
     # Configura JobQueue
@@ -115,7 +120,7 @@ async def main():
     application.add_handler(CommandHandler("listar", listar))
 
     # URL del webhook
-    webhook_url = "https://reminderwhabot-vsig.onrender.com/webhook"  # Reemplaza esto con la URL de tu app en Render
+    webhook_url = os.getenv("WEBHOOK_URL", "https://reminderwhabot-vsig.onrender.com/webhook")
 
     # Configura el webhook
     await application.bot.set_webhook(webhook_url)
@@ -124,15 +129,15 @@ async def main():
     job_queue.run_repeating(
         monitoreo_automatico,
         interval=3600,  # Ejecutar cada 1 hora
-        first=10,  # Esperar 10 segundos antes de la primera ejecución
+        first=10,
     )
 
     # Ejecuta el bot usando webhook
     await application.run_webhook(
-        listen="0.0.0.0",  # Escucha en todas las interfaces
-        port=8443,         # Puerto donde escuchará el webhook
-        url_path="/webhook",  # Ruta para el webhook
-        webhook_url=webhook_url  # La URL completa donde el webhook será accesible
+        listen="0.0.0.0",
+        port=int(os.getenv("PORT", 8443)),
+        url_path="/webhook",
+        webhook_url=webhook_url
     )
 
 if __name__ == "__main__":
