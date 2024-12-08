@@ -42,8 +42,6 @@ def save_data(data):
 
 # Función de login en Instagram
 def login_instagram():
-    session_file = f".instaloader-session-{INSTAGRAM_USER}"
-
     try:
         # Intentamos cargar la sesión desde el archivo
         loader.load_session_from_file(INSTAGRAM_USER)
@@ -52,8 +50,8 @@ def login_instagram():
         # Si no existe el archivo de sesión, iniciar sesión manualmente
         logger.info("No se encontró sesión guardada, iniciando sesión con usuario y contraseña...")
         loader.login(INSTAGRAM_USER, INSTAGRAM_PASS)  # Iniciar sesión con usuario y contraseña
-        loader.save_session(session_file)  # Guardar la sesión para futuras ejecuciones
-        logger.info(f"Sesión guardada correctamente en {session_file}")
+        loader.save_session()  # Guardar la sesión para futuras ejecuciones
+        logger.info("Sesión guardada correctamente.")
 
 # Función para analizar los perfiles y sus seguidores
 async def analizar_perfil(perfil, chat_id, application) -> None:
