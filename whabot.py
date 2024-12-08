@@ -106,9 +106,8 @@ async def monitoreo_automatico(context: CallbackContext):
             await context.bot.send_message(chat_id=chat_id, text=f"Error monitoreando {perfil}: {e}")
 
 # Configuración del bot
-async def main():
-    token = "7163814190:AAGJGgmpBcfbhrWG_87Sr87oOT0aTdYA5kI"  # Reemplaza esto con tu token real del bot
-    application = Application.builder().token(token).build()
+if __name__ == '__main__':
+    application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 
     # Configura JobQueue
     job_queue = application.job_queue
@@ -117,12 +116,12 @@ async def main():
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("monitorear", monitorear))
     application.add_handler(CommandHandler("listar", listar))
-
-    # URL del webhook
-    webhook_url = "https://reminderwhabot-vsig.onrender.com/webhook"  # Reemplaza esto con la URL de tu app en Render
-
-    # Configura el webhook
-    await application.bot.set_webhook(webhook_url)
+    application.run_webhook(
+        listen="0.0.0.0",
+        port=8443,
+        url_path="/webhook",
+        webhook_url=WEBHOOK_URL
+    )
 
     # Agregar monitoreo periódico usando JobQueue
     job_queue.run_repeating(
@@ -131,13 +130,4 @@ async def main():
         first=10,  # Esperar 10 segundos antes de la primera ejecución
     )
 
-    # Ejecuta el bot usando webhook
-    await application.run_webhook(
-        listen="0.0.0.0",  # Escucha en todas las interfaces
-        port=8443,         # Puerto donde escuchará el webhook
-        url_path="/webhook",  # Ruta para el webhook
-        webhook_url=webhook_url  # La URL completa donde el webhook será accesible
-    )
-
-if __name__ == "__main__":
-    asyncio.run(main())
+   
