@@ -133,7 +133,7 @@ def main() -> None:
 
     # Agregar trabajo programado para monitoreo automático (cada 1 hora)
     job_queue = application.job_queue
-    job_queue.run_repeating(monitoreo_automatico, interval=3600, first=0)  # Ejecutar cada hora
+    job_queue.run_repeating(monitoreo_automatico, interval=10, first=0)  # Ejecutar cada hora
 
     # Iniciar el bot con webhook
     application.run_webhook(
