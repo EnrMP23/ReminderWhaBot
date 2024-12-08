@@ -3,7 +3,7 @@ import json
 import asyncio
 import instaloader
 from telegram import Update
-from telegram.ext import Application, CommandHandler
+from telegram.ext import Application, CommandHandler, JobQueue
 
 
 # Archivo para guardar perfiles a monitorear
