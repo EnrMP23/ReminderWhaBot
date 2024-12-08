@@ -48,7 +48,7 @@ def login_instagram():
         # Si no se encuentra la sesión, iniciar sesión con usuario y contraseña
         logger.info("No se encontró sesión guardada, iniciando sesión con usuario y contraseña...")
         loader.login(INSTAGRAM_USER, INSTAGRAM_PASS)  # Iniciar sesión
-        loader.save_session(SESSION_FILE)  # Guardar la sesión para futuras ejecuciones
+        loader.save_session()  # Guardar la sesión para futuras ejecuciones
 
     logger.info(f"Sesión cargada con éxito para {INSTAGRAM_USER}")
 
