@@ -3,7 +3,7 @@ import json
 import asyncio
 import instaloader
 from telegram import Update
-from telegram.ext import Application, CommandHandler, JobQueue
+from telegram.ext import Application, CommandHandler
 
 # Archivo para guardar perfiles a monitorear
 MONITOREO_FILE = "monitoreo.json"
@@ -96,9 +96,10 @@ async def analizar_perfil(perfil, chat_id, updater):
 
 # Monitoreo automático
 async def monitoreo_automatico(context):
+    chat_id = context.job.context['chat_id']  # Obtener el chat_id desde el contexto
     monitoreo = load_data()  # Cargar perfiles monitoreados
     for perfil in monitoreo.keys():
-        await analizar_perfil(perfil, context.job.context['chat_id'], context.application)
+        await analizar_perfil(perfil, chat_id, context.application)
 
 # Configuración del bot
 async def main():
