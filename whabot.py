@@ -4,6 +4,7 @@ import instaloader
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, JobQueue, CallbackContext
 import logging
+import asyncio
 
 # Configuración básica
 TELEGRAM_TOKEN = os.getenv("7163814190:AAGJGgmpBcfbhrWG_87Sr87oOT0aTdYA5kI")
