@@ -3,6 +3,7 @@ import json
 import instaloader
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, JobQueue, CallbackContext
+from telegram.ext import Job
 import logging
 import asyncio
 
