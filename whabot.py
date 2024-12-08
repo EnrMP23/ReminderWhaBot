@@ -107,11 +107,7 @@ async def monitoreo_automatico(context: CallbackContext):
 
 # Configuración del bot
 async def main():
-    token = os.getenv("TELEGRAM_TOKEN")
-    if not token:
-        print("Error: No se encontró el token del bot en las variables de entorno.")
-        return
-
+    token = (TELEGRAM_TOKEN)  # Reemplaza esto con tu token real del bot
     application = Application.builder().token(token).build()
 
     # Configura JobQueue
@@ -123,7 +119,7 @@ async def main():
     application.add_handler(CommandHandler("listar", listar))
 
     # URL del webhook
-    webhook_url = os.getenv("WEBHOOK_URL", "https://reminderwhabot-vsig.onrender.com/webhook")
+    webhook_url = "https://reminderwhabot-vsig.onrender.com/webhook"  # Reemplaza esto con la URL de tu app en Render
 
     # Configura el webhook
     await application.bot.set_webhook(webhook_url)
@@ -132,15 +128,15 @@ async def main():
     job_queue.run_repeating(
         monitoreo_automatico,
         interval=3600,  # Ejecutar cada 1 hora
-        first=10,
+        first=10,  # Esperar 10 segundos antes de la primera ejecución
     )
 
     # Ejecuta el bot usando webhook
     await application.run_webhook(
-        listen="0.0.0.0",
-        port=int(os.getenv("PORT", 8443)),
-        url_path="/webhook",
-        webhook_url=webhook_url
+        listen="0.0.0.0",  # Escucha en todas las interfaces
+        port=8443,         # Puerto donde escuchará el webhook
+        url_path="/webhook",  # Ruta para el webhook
+        webhook_url=webhook_url  # La URL completa donde el webhook será accesible
     )
 
 if __name__ == "__main__":
