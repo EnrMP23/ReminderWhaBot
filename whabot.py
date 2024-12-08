@@ -104,9 +104,9 @@ async def monitoreo_automatico(context: CallbackContext):
     for perfil in monitoreo.keys():
         await analizar_perfil(perfil, CHAT_ID, context.bot)
 
-# Configuración del bot
+# Configuración principal del bot
 async def main():
-    """Configuración principal del bot y ejecución."""
+    """Configuración del bot y ejecución."""
     application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 
     # Configura JobQueue
@@ -125,17 +125,20 @@ async def main():
     )
 
     # Ejecutar la aplicación
-    await application.run_polling()
+    await application.start()
+    print("Bot iniciado correctamente.")
+    await application.updater.wait_for_stop()
 
-# Ejecutar el bot
 if __name__ == '__main__':
     import asyncio
 
     try:
-        loop = asyncio.get_event_loop()
-        if loop.is_running():
-            loop.create_task(main())
-        else:
+        asyncio.run(main())
+    except RuntimeError as e:
+        if str(e) == "Cannot close a running event loop":
+            print("El event loop ya estaba corriendo. Ejecutando el bot directamente.")
+            from threading import Thread
+            loop = asyncio.get_event_loop()
+            t = Thread(target=loop.run_forever)
+            t.start()
             asyncio.run(main())
-    except Exception as e:
-        print(f"Error al ejecutar el bot: {e}")
