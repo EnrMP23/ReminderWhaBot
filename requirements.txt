@@ -1,6 +1,6 @@
 requests
 python-telegram-bot==20.0
 python-telegram-bot[webhooks]
-instaloader==4.9.0
+instaloader==4.9.3
 schedule==1.1.0
 
