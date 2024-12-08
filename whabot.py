@@ -1,5 +1,6 @@
 import os
 import json
+import logging
 from telegram import Update
 from telegram.ext import (
     ApplicationBuilder,
@@ -7,6 +8,10 @@ from telegram.ext import (
     ContextTypes
 )
 import instaloader
+
+# Configuración del logging
+logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Configuración
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN", "7163814190:AAGJGgmpBcfbhrWG_87Sr87oOT0aTdYA5kI")
@@ -45,8 +50,11 @@ def save_data(data):
 
 # Comandos
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    chat_id = update.message.chat_id  # Obtener el chat ID del usuario
+    logger.info(f"Comando /start recibido de chat ID {chat_id}")
     await update.message.reply_text(
-        "¡Hola! Soy un bot para monitorear los seguidos de perfiles en Instagram.\n"
+        f"¡Hola! Soy un bot para monitorear los seguidos de perfiles en Instagram.\n"
+        f"Tu chat ID es: {chat_id}\n"
         "Comandos disponibles:\n"
         "- /monitorear <perfil>: Agrega un perfil para monitorear.\n"
         "- /listar: Muestra los perfiles monitoreados."
