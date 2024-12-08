@@ -4,7 +4,7 @@ from telegram import Update
 from telegram.ext import (
     ApplicationBuilder,
     CommandHandler,
-    CallbackContext,
+    ContextTypes
 )
 import instaloader
 
@@ -44,7 +44,7 @@ def save_data(data):
         json.dump(data, file, indent=4)
 
 # Comandos
-async def start(update: Update, context: CallbackContext) -> None:
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(
         "¡Hola! Soy un bot para monitorear los seguidos de perfiles en Instagram.\n"
         "Comandos disponibles:\n"
@@ -52,7 +52,7 @@ async def start(update: Update, context: CallbackContext) -> None:
         "- /listar: Muestra los perfiles monitoreados."
     )
 
-async def monitorear(update: Update, context: CallbackContext) -> None:
+async def monitorear(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if len(context.args) != 1:
         await update.message.reply_text("Por favor, proporciona un nombre de perfil. Ejemplo: /monitorear instagram")
         return
@@ -67,7 +67,7 @@ async def monitorear(update: Update, context: CallbackContext) -> None:
         save_data(monitoreo)
         await update.message.reply_text(f"El perfil {perfil} ha sido agregado al monitoreo.")
 
-async def listar(update: Update, context: CallbackContext) -> None:
+async def listar(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     monitoreo = load_data()
     if not monitoreo:
         await update.message.reply_text("No hay perfiles en monitoreo.")
@@ -104,6 +104,7 @@ def main() -> None:
     # Primero, loguearse en Instagram
     login_instagram()
 
+    # Creación de la aplicación
     application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 
     # Configuración de comandos
@@ -113,9 +114,9 @@ def main() -> None:
 
     # Configuración de webhook
     application.run_webhook(
-        listen="0.0.0.0",
-        port=PORT,
-        webhook_url=WEBHOOK_URL,
+        listen="0.0.0.0",  # Escucha en todas las interfaces
+        port=PORT,         # Puerto configurado
+        webhook_url=WEBHOOK_URL,  # URL del webhook
     )
 
 if __name__ == "__main__":
