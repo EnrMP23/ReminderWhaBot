@@ -3,7 +3,7 @@ import json
 import asyncio
 import instaloader
 from telegram import Update
-from telegram.ext import Application, CommandHandler
+from telegram.ext import Application, CommandHandler, JobQueue, CallbackContext
 
 # Archivo para guardar perfiles a monitorear
 MONITOREO_FILE = "monitoreo.json"
@@ -23,7 +23,7 @@ def save_data(data):
         json.dump(data, file, indent=4)
 
 # Comando /start
-async def start(update: Update, context):
+async def start(update: Update, context: CallbackContext):
     await update.message.reply_text(
         "¡Hola! Soy un bot para monitorear los seguidos de perfiles en Instagram.\n"
         "Comandos disponibles:\n"
@@ -33,7 +33,7 @@ async def start(update: Update, context):
     )
 
 # Comando /monitorear
-async def monitorear(update: Update, context):
+async def monitorear(update: Update, context: CallbackContext):
     if len(context.args) != 1:
         await update.message.reply_text("Por favor, proporciona un nombre de perfil. Ejemplo: /monitorear @instagram")
         return
@@ -49,7 +49,7 @@ async def monitorear(update: Update, context):
         await update.message.reply_text(f"El perfil {perfil} ha sido agregado al monitoreo.")
 
 # Comando /listar
-async def listar(update: Update, context):
+async def listar(update: Update, context: CallbackContext):
     monitoreo = load_data()  # Cargar datos de los perfiles monitoreados
 
     if not monitoreo:
@@ -95,7 +95,7 @@ async def analizar_perfil(perfil, chat_id, updater):
         await updater.bot.send_message(chat_id=chat_id, text=f"Hubo un error al analizar {perfil}: {e}")
 
 # Monitoreo automático
-async def monitoreo_automatico(context):
+async def monitoreo_automatico(context: CallbackContext):
     chat_id = context.job.context['chat_id']  # Obtener el chat_id desde el contexto
     monitoreo = load_data()  # Cargar perfiles monitoreados
     for perfil in monitoreo.keys():
@@ -125,7 +125,6 @@ async def main():
         monitoreo_automatico,
         interval=3600,  # Ejecutar cada 1 hora
         first=10,  # Esperar 10 segundos antes de la primera ejecución
-        context={"chat_id": "5602833071"}  # El contexto ahora se pasa aquí como un diccionario
     )
 
     # Ejecuta el bot usando webhook
