@@ -4,7 +4,6 @@ from telegram import Update
 from telegram.ext import (
     ApplicationBuilder,
     CommandHandler,
-    CallbackContext,
     ContextTypes
 )
 import instaloader
@@ -18,7 +17,7 @@ MONITOREO_FILE = "monitoreo.json"
 
 # Datos de inicio de sesión de Instagram
 INSTAGRAM_USER = os.getenv("INSTAGRAM_USER", "@enriquemaynez")
-INSTAGRAM_PASS = os.getenv("INSTAGRAM_PASS", "EnriqueMP2002")
+INSTAGRAM_PASS = os.getenv("INSTAGRAM_PASS", "@EnriqueMP2002")
 
 # Instaloader para interacción con Instagram
 loader = instaloader.Instaloader()
@@ -67,7 +66,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     )
 
 # Comando monitorear
-async def monitorear(update: Update, context: CallbackContext) -> None:
+async def monitorear(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if len(context.args) != 1:
         await update.message.reply_text("Por favor, proporciona un nombre de perfil. Ejemplo: /monitorear instagram")
         return
@@ -83,7 +82,7 @@ async def monitorear(update: Update, context: CallbackContext) -> None:
         await update.message.reply_text(f"El perfil {perfil} ha sido agregado al monitoreo.")
 
 # Comando listar
-async def listar(update: Update, context: CallbackContext) -> None:
+async def listar(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     monitoreo = load_data()
     if not monitoreo:
         await update.message.reply_text("No hay perfiles en monitoreo.")
