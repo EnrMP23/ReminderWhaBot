@@ -5,8 +5,6 @@ from telegram.ext import (
     ApplicationBuilder,
     CommandHandler,
     CallbackContext,
-    ContextTypes,
-    JobQueue,
 )
 import instaloader
 
@@ -15,9 +13,21 @@ TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN", "7163814190:AAGJGgmpBcfbhrWG_87Sr87
 WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://reminderwhabot-vsig.onrender.com/webhook")
 PORT = int(os.getenv("PORT", "8443"))
 MONITOREO_FILE = "monitoreo.json"
+INSTAGRAM_USERNAME = os.getenv("INSTAGRAM_USERNAME", "@enriquemaynez")
+INSTAGRAM_PASSWORD = os.getenv("INSTAGRAM_PASSWORD", "EnriqueMP2002")
+SESSION_FILE = "insta_session"
 
 # Instaloader para interacción con Instagram
 loader = instaloader.Instaloader()
+
+# Iniciar sesión en Instagram
+def login_instagram():
+    if os.path.exists(SESSION_FILE):
+        loader.load_session_from_file(INSTAGRAM_USERNAME, SESSION_FILE)
+    else:
+        loader.context.log("Iniciando sesión en Instagram...")
+        loader.login(INSTAGRAM_USERNAME, INSTAGRAM_PASSWORD)
+        loader.save_session_to_file(SESSION_FILE)
 
 # Funciones para cargar y guardar datos
 def load_data():
@@ -89,17 +99,11 @@ async def analizar_perfil(perfil, chat_id, application) -> None:
     except Exception as e:
         await application.bot.send_message(chat_id=chat_id, text=f"Error analizando {perfil}: {e}")
 
-async def monitoreo_automatico(context: CallbackContext) -> None:
-    chat_id = context.job.context
-    monitoreo = load_data()
-    for perfil in monitoreo.keys():
-        try:
-            await analizar_perfil(perfil, chat_id, context.application)
-        except Exception as e:
-            await context.bot.send_message(chat_id=chat_id, text=f"Error monitoreando {perfil}: {e}")
-
 # Configuración principal
 def main() -> None:
+    # Primero, loguearse en Instagram
+    login_instagram()
+
     application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 
     # Configuración de comandos
